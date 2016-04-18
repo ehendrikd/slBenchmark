@@ -1,2 +1,2 @@
 # slBenchmark
-Structured light 3D scanning testing and benchmarking framework
+A structured light 3D scanning testing and benchmarking framework.
