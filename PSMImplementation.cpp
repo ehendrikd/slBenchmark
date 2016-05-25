@@ -1,0 +1,242 @@
+#include "PSMImplementation.h"
+
+PSMImplementation::PSMImplementation(): slImplementation(string("PSMImplementation")) {
+}
+
+void PSMImplementation::preExperimentRun() {
+	pixelsToProcess = new priority_queue<WrappedPixel, vector<WrappedPixel>, CompareWrappedPixel>();
+
+	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+
+	int arraySize = croppedArea.width * croppedArea.height;
+
+	phase = new float[arraySize];
+	dist = new float[arraySize];
+	mask = new int[arraySize];
+	ready = new int[arraySize];
+	names = new int[arraySize];
+}
+
+void PSMImplementation::postExperimentRun() {
+	delete pixelsToProcess;
+
+	delete[] phase;
+	delete[] dist;
+	delete[] mask;
+	delete[] ready;
+	delete[] names;
+}
+
+bool PSMImplementation::hasMoreIterations() {
+        return experiment->getIterationIndex() < 3;
+}
+
+Mat PSMImplementation::generatePattern() {
+	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
+
+	int iterationIndex = experiment->getIterationIndex();
+
+	int screenWidth = (int)cameraResolution.width;
+	int screenHeight = (int)cameraResolution.height;
+
+	int columnWidth = screenWidth / PSM_NUM_COLS;
+
+	float offset = -1.6;
+	
+	Mat pattern(screenHeight, screenWidth, CV_8UC3);
+
+	for (int column = 0; column < PSM_NUM_COLS; column++) {
+		int columnX = (column * columnWidth);
+
+		for (int x = columnX; x < (columnX + columnWidth); x++) {
+			float theta = ((PSM_TWO_PI / columnWidth) * x) + offset;
+
+			double phaseIntensity;
+
+			switch (iterationIndex) {
+				case 0:
+					phaseIntensity = ((cos(theta - PSM_TWO_PI_ON_3) + 1.0) / 2.0) * 255.0;
+					break;
+				case 1:
+					phaseIntensity = ((cos(theta + PSM_TWO_PI_ON_3) + 1.0) / 2.0) * 255.0;
+					break;
+				case 2:
+					phaseIntensity = ((cos(theta) + 1.0) / 2.0) * 255.0;
+					break;
+			}
+
+			line(pattern, Point(x, 0), Point(x, screenHeight - 1), Scalar(phaseIntensity, phaseIntensity, phaseIntensity));
+		}
+	}
+
+	return pattern;
+}
+
+void PSMImplementation::postIterationsProcess() {
+	phaseWrap();
+	phaseUnwrap();
+	makeDepth();
+}
+
+float PSMImplementation::diff(float a, float b) {
+	float d = (a < b ? b - a : a - b);
+	return (d < 0.5 ? d : 1 - d);
+}
+
+float PSMImplementation::min(float a, float b, float c) {
+	return (a < b && a < c ? a : (b < c ? b : c));
+}
+
+float PSMImplementation::max(float a, float b, float c) {
+	return (a > b && a > c ? a : (b > c ? b : c));
+}
+
+float PSMImplementation::averageBrightness(int r, int g, int b) {
+	return (r + g + b) / (255.0f * 3.0f);
+}
+
+void PSMImplementation::phaseWrap() {
+	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+
+	float sqrt3 = sqrt(3);
+
+	Mat phase1Mat = experiment->getCaptureAt(0);
+	Mat phase2Mat = experiment->getCaptureAt(1);
+	Mat phase3Mat = experiment->getCaptureAt(2);
+	
+	for (int y = 0; y < croppedArea.height; y++) {
+		for (int x = 0; x < croppedArea.width; x++) {
+			Vec3b phase1PixelBGR = phase1Mat.at<Vec3b>(y, x);
+			Vec3b phase2PixelBGR = phase2Mat.at<Vec3b>(y, x);
+			Vec3b phase3PixelBGR = phase3Mat.at<Vec3b>(y, x);
+
+			float phase1 = averageBrightness((int)phase1PixelBGR[2], (int)phase1PixelBGR[1], (int)phase1PixelBGR[0]);
+			float phase2 = averageBrightness((int)phase2PixelBGR[2], (int)phase2PixelBGR[1], (int)phase2PixelBGR[0]);
+			float phase3 = averageBrightness((int)phase3PixelBGR[2], (int)phase3PixelBGR[1], (int)phase3PixelBGR[0]);
+
+			float phaseRange = max(phase1, phase2, phase3) - min(phase1, phase2, phase3);
+
+			int arrayOffset = (y * croppedArea.width) + x;
+
+			if (phaseRange <= PSM_NOISE_THRESHOLD) {
+				mask[arrayOffset] = 1;
+				ready[arrayOffset] = 0;
+			} else {
+				mask[arrayOffset] = 0;
+				ready[arrayOffset] = 1;
+			}
+
+			dist[arrayOffset] = phaseRange;
+
+			phase[arrayOffset] = atan2(sqrt3 * (phase1 - phase3), 2.0f * phase2 - phase1 - phase3) / PSM_TWO_PI;
+		}
+	}
+
+	for (int y = 1; y < croppedArea.height - 1; y++) {
+		for (int x = 1; x < croppedArea.width - 1; x++) {
+			int arrayOffset = (y * croppedArea.width) + x;
+
+			if (mask[arrayOffset] == 0) {
+				dist[arrayOffset] = (
+					diff(phase[arrayOffset], phase[arrayOffset - 1]) +
+					diff(phase[arrayOffset], phase[arrayOffset + 1]) +
+					diff(phase[arrayOffset], phase[((y - 1) * croppedArea.width) + x]) +
+					diff(phase[arrayOffset], phase[((y + 1) * croppedArea.width) + x])
+				) / dist[arrayOffset];
+			}
+		}
+	}
+}
+
+void PSMImplementation::phaseUnwrap() {
+	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+
+	int startX = croppedArea.width / 2;
+	int startY = croppedArea.height / 2;
+
+	struct WrappedPixel firstWrappedPixel;
+
+	firstWrappedPixel.x = startX;
+	firstWrappedPixel.y = startY;
+	firstWrappedPixel.dist = 0;
+	firstWrappedPixel.phase = phase[(startY * croppedArea.width) + startX];
+
+	pixelsToProcess->push(firstWrappedPixel);
+
+	while (!pixelsToProcess->empty()) {
+		struct WrappedPixel currentPixel = pixelsToProcess->top();
+		pixelsToProcess->pop();
+
+		int x = currentPixel.x;
+		int y = currentPixel.y;
+
+		int arrayOffset = (y * croppedArea.width) + x;
+
+		if (ready[arrayOffset] == 1) {
+			phase[arrayOffset] = currentPixel.phase;
+			ready[arrayOffset] = 0;
+
+			if (y > 0) {
+				phaseUnwrap(x, y - 1, currentPixel.dist, currentPixel.phase);
+			}
+			if (y < croppedArea.height - 1) {
+				phaseUnwrap(x, y + 1, currentPixel.dist, currentPixel.phase);
+			}
+			if (x > 0) {
+				phaseUnwrap(x - 1, y, currentPixel.dist, currentPixel.phase);
+			}
+			if (x < croppedArea.width - 1) {
+				phaseUnwrap(x + 1, y, currentPixel.dist, currentPixel.phase);
+			}
+		}
+	}
+}
+
+void PSMImplementation::phaseUnwrap(int x, int y, float unwrapDist, float unwrapPhase) {
+	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+
+	int arrayOffset = (y * croppedArea.width) + x;
+
+	if (ready[arrayOffset] == 1) {
+		float diff = phase[arrayOffset] - (unwrapPhase - (int)unwrapPhase);
+
+		if (diff > 0.5f) {
+			diff--;
+		}
+		if (diff < -0.5f) {
+			diff++;
+		}
+		
+		struct WrappedPixel nextWrappedPixel;
+
+		nextWrappedPixel.x = x;
+		nextWrappedPixel.y = y;
+		nextWrappedPixel.dist = unwrapDist + dist[arrayOffset];
+		nextWrappedPixel.phase = unwrapPhase + diff;
+
+		pixelsToProcess->push(nextWrappedPixel);
+	}
+}
+
+void PSMImplementation::makeDepth() {
+	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+
+	for (int x = 0; x < croppedArea.width; x += PSM_RENDER_DETAIL) {
+		//float planephase = 0.5f - ((x - (croppedArea.width / 2.0f)) / PSM_Z_SKEW);
+		float planephase = 0.5f - ((x - (croppedArea.width / 2.0f)) / croppedArea.width);
+
+		for (int y = 0; y < croppedArea.height; y += PSM_RENDER_DETAIL) {
+			int arrayOffset = (y * croppedArea.width) + x;
+
+			if (mask[arrayOffset] == 0) {
+				//double displacement = phase[arrayOffset] - planephase;
+				//double displacement = phase[arrayOffset];
+				double xScaled = (phase[arrayOffset] / experiment->getInfrastructure()->getCameraResolution().width * PSM_NUM_COLS);
+				double displacement = xScaled - planephase;
+				slDepthExperimentResult result(x, y, displacement * PSM_Z_SCALE);
+				experiment->storeResult(&result);
+			}
+		}
+	}
+}
+

@@ -1,0 +1,33 @@
+{
+	"objects": 
+	[
+		{
+			"type":		"plane",
+			"rotation":	[0, 90, 0],
+			"scale":	[5, 5, 1]
+		},
+		{
+			"type":		"sphere",
+			"location":	[1, -1, 0]
+		},
+		{
+			"type":		"cube",
+			"location":	[1, 1, 0]
+		}
+	],
+	"projector":
+	{
+		"location":		[9.5, 0.5, 0],
+		"rotation":		[0, 90, 0],
+		"rotation_euler":	[90, 0, 0],
+		"focal_length":		10,
+		"projection_size":	30,
+		"intensity":		15
+	},
+	"camera":
+	{
+		"location":		[9.5, -0.5, 0],
+		"rotation":		[90, 0, 90]
+	},
+	"save_scene_file":	false
+}
