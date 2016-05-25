@@ -12,7 +12,7 @@ CV_MODULES = core imgcodecs imgproc videoio highgui
 CV_LIBRARIES = $(patsubst %,-lopencv_%$(CV_VERSION),$(CV_MODULES))
 
 CPPFLAGS = -g -I$(CV_INCLUDE) -DDEBUG_BUILD
-LFLAGS = -L$(CV_LIB) $(CV_LIBRARIES)
+LFLAGS = -L$(CV_LIB) $(CV_LIBRARIES) -I$(CV_INCLUDE) -DDEBUG_BUILD
 
 LIBSRC := $(wildcard *Implementation.cpp) $(wildcard *Infrastructure.cpp) slBenchmark.cpp
 LIBOBJS = $(patsubst %.cpp, %.o, $(LIBSRC))

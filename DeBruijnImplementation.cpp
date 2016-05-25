@@ -88,8 +88,8 @@ void DeBruijnImplementation::postIterationsProcess() {
 		int gradients[croppedArea.width];
 		int correspondence[croppedArea.width];
 		/*int differences[rgbWidth];*/
-		Vec3s differences[rgbWidth];
-		Vec3s edges[rgbWidth];
+		Vec3s *differences = new Vec3s[rgbWidth];
+		Vec3s *edges = new Vec3s[rgbWidth];
 
 		for (int x = 0; x < croppedArea.width; x++) {
 			Vec3s capturelBGR = captureMat.at<Vec3b>(y, x); /* Stored in signed ints to be able to take the difference */
@@ -154,7 +154,10 @@ void DeBruijnImplementation::postIterationsProcess() {
 			slDepthExperimentResult result(x, y, displacement * DEBRUIJN_Z_SCALE);
 			experiment->storeResult(&result);
     		}
+
 		delete[] correspondences;
+		delete[] differences;
+		delete[] edges;
 	}
 }
 
