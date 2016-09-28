@@ -17,14 +17,16 @@ LFLAGS = -L$(CV_LIB) $(CV_LIBRARIES) -I$(CV_INCLUDE) -DDEBUG_BUILD
 LIBSRC := $(wildcard *Implementation.cpp) $(wildcard *Infrastructure.cpp) slBenchmark.cpp
 LIBOBJS = $(patsubst %.cpp, %.o, $(LIBSRC))
 
-all: main
+all: slBenchmark
 
+debug: CPPFLAGS += -g
+debug: slBenchmark
 
-main: $(LIBOBJS) main.cpp
+slBenchmark: $(LIBOBJS) main.cpp
 	echo $(LIBOBJS)
-	g++ $(LFLAGS) $(LIBOBJS) main.cpp -o main
+	g++ $(LFLAGS) $(LIBOBJS) main.cpp -o slBenchmark
 
-$(LIBOBJS):%.o: %.cpp
+$(LIBOBJS):%.o: %.cpp %.h
 	$(CXX) $(CPPFLAGS) -c $< -o $@
 
 clean:

@@ -88,12 +88,14 @@ void GrayCodedBinaryImplementation::postIterationsProcess() {
 		int lastBinaryCode = -1;
 
 		for (int x = 0; x < croppedArea.width; x++) {
+			double xCamera = (double)x / (double)croppedArea.width;
 			int currentBinaryCode = binaryCode[(y * croppedArea.width) + x];
 
 			if (currentBinaryCode != -1 && currentBinaryCode != lastBinaryCode) {
 				
-				double displacement = 
-					((double)x / (double)croppedArea.width) - ((double)convertGrayCodeToInteger(currentBinaryCode, numberColumns, BINARY_NUM_PATTERNS) / (double)numberColumns);
+				double xPattern = ((double)convertGrayCodeToInteger(currentBinaryCode, numberColumns, BINARY_NUM_PATTERNS) / (double)numberColumns);
+				double displacement = xCamera - xPattern;
+				double z = displacement * BINARY_Z_SCALE;
 
 				slDepthExperimentResult result(x, y, displacement * BINARY_Z_SCALE);
 				experiment->storeResult(&result);
@@ -115,4 +117,3 @@ int GrayCodedBinaryImplementation::convertGrayCodeToInteger(int grayCodeToConver
 
 	return result;
 }
-
