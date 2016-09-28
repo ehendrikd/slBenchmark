@@ -78,6 +78,9 @@ void PSMImplementation::postIterationsProcess() {
 	makeDepth();
 }
 
+/**
+ * max(|a-b|,1-|a-b|)
+ */
 float PSMImplementation::diff(float a, float b) {
 	float d = (a < b ? b - a : a - b);
 	return (d < 0.5 ? d : 1 - d);
@@ -95,6 +98,11 @@ float PSMImplementation::averageBrightness(int r, int g, int b) {
 	return (r + g + b) / (255.0f * 3.0f);
 }
 
+
+/**
+ * The function phaseWrap computes the phase of the pattern at each point (x,y),
+ * that is its place within the column.
+ */
 void PSMImplementation::phaseWrap() {
 	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
 
@@ -106,6 +114,7 @@ void PSMImplementation::phaseWrap() {
 	
 	for (int y = 0; y < croppedArea.height; y++) {
 		for (int x = 0; x < croppedArea.width; x++) {
+			/* Start by getting the intensity of the image at the point for each image*/
 			Vec3b phase1PixelBGR = phase1Mat.at<Vec3b>(y, x);
 			Vec3b phase2PixelBGR = phase2Mat.at<Vec3b>(y, x);
 			Vec3b phase3PixelBGR = phase3Mat.at<Vec3b>(y, x);
@@ -114,6 +123,7 @@ void PSMImplementation::phaseWrap() {
 			float phase2 = averageBrightness((int)phase2PixelBGR[2], (int)phase2PixelBGR[1], (int)phase2PixelBGR[0]);
 			float phase3 = averageBrightness((int)phase3PixelBGR[2], (int)phase3PixelBGR[1], (int)phase3PixelBGR[0]);
 
+			/* Maximum intensity minus minimum intensity */
 			float phaseRange = max(phase1, phase2, phase3) - min(phase1, phase2, phase3);
 
 			int arrayOffset = (y * croppedArea.width) + x;
@@ -148,6 +158,11 @@ void PSMImplementation::phaseWrap() {
 	}
 }
 
+/**
+ * Find the location of the point in the projected pattern, based on the phase
+ * and its position in relation to the other points (ie, try to identify the column
+ * it lies in
+ */
 void PSMImplementation::phaseUnwrap() {
 	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
 
@@ -221,22 +236,22 @@ void PSMImplementation::phaseUnwrap(int x, int y, float unwrapDist, float unwrap
 void PSMImplementation::makeDepth() {
 	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
 
-	for (int x = 0; x < croppedArea.width; x += PSM_RENDER_DETAIL) {
-		//float planephase = 0.5f - ((x - (croppedArea.width / 2.0f)) / PSM_Z_SKEW);
-		float planephase = 0.5f - ((x - (croppedArea.width / 2.0f)) / croppedArea.width);
 
-		for (int y = 0; y < croppedArea.height; y += PSM_RENDER_DETAIL) {
+	for (int y = 0; y < croppedArea.height; y += PSM_RENDER_DETAIL) {
+		for (int x = 0; x < croppedArea.width; x += PSM_RENDER_DETAIL) {
+			// planephase is 0 at the right border of the image, 1/2 in the middle and 1 at the
+			// left border of the image.
+			double planephase = 0.5f - ((x - (croppedArea.width / 2.0f)) / croppedArea.width);
 			int arrayOffset = (y * croppedArea.width) + x;
 
 			if (mask[arrayOffset] == 0) {
-				//double displacement = phase[arrayOffset] - planephase;
-				//double displacement = phase[arrayOffset];
-				double xScaled = (phase[arrayOffset] / experiment->getInfrastructure()->getCameraResolution().width * PSM_NUM_COLS);
+				// xScaled should give us the position of the point in the projected picture (scaled to [0,1]).
+				double xScaled = phase[arrayOffset] / PSM_NUM_COLS + 0.5f;
 				double displacement = xScaled - planephase;
-				slDepthExperimentResult result(x, y, displacement * PSM_Z_SCALE);
+				double z = displacement * PSM_Z_SCALE;
+				slDepthExperimentResult result(x, y, z);
 				experiment->storeResult(&result);
 			}
 		}
 	}
 }
-

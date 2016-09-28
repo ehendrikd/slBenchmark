@@ -14,7 +14,7 @@
 //#define PSM_Z_SKEW 24
 //#define PSM_Z_SKEW 6
 
-#define PSM_RENDER_DETAIL 5
+#define PSM_RENDER_DETAIL 7
 
 using namespace cv;
 
