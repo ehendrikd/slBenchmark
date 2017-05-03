@@ -16,30 +16,55 @@
  * the folders existingCapturesPSM and existingCapturesGRAY exist and contain the 
  * captures from previous experiments.
  */
-int infrastructureExample() {
-	slFileInfrastructure fileInfrastructurePSM("existingCapturesPSM");
-	slFileInfrastructure fileInfrastructureGRAY("existingCapturesGRAY");
-	fileInfrastructurePSM.setCroppedArea(Rect(619, 0, 1118, 1080)); 
-	fileInfrastructureGRAY.setCroppedArea(Rect(619, 0, 1118, 1080)); 
-	fileInfrastructurePSM.setCroppedArea(Rect(619, 0, 1118, 1080)); 
-	fileInfrastructureGRAY.setCroppedArea(Rect(619, 0, 1118, 1080)); 
+int fileInfrastructureExample() {
+	/* Infrastructures (one set of files per infrastructure) */
+	slFileInfrastructure fileInfrastructurePhaseShift("SampleFiles/PhaseShift/captures");
+	slFileInfrastructure fileInfrastructureBinary("SampleFiles/Binary/captures");
+	slFileInfrastructure fileInfrastructureGray("SampleFiles/GrayCode/captures");
+	slFileInfrastructure fileInfrastructureDeBruijn("SampleFiles/DeBruijn/captures");
+	fileInfrastructurePhaseShift.setCroppedArea(Rect(619, 0, 1118, 1080)); 
+	fileInfrastructureBinary.setCroppedArea(Rect(619, 0, 1118, 1080)); 
+	fileInfrastructureGray.setCroppedArea(Rect(619, 0, 1118, 1080)); 
+	fileInfrastructureDeBruijn.setCroppedArea(Rect(619, 0, 1118, 1080)); 
 
+	/* Implementations */
+	BinaryImplementation binaryImplementation;
+	GrayCodedBinaryImplementation grayCodedBinaryImplementation;
 	PSMImplementation psmImplementation;
-	GrayCodedBinaryImplementation graycodeImplementation;
+	DeBruijnImplementation deBruijnImplementation;
+//	GroundTruthImplementation groundTruthImplementation;
 
-	slSpeedDepthExperiment experiment1(&fileInfrastructurePSM, &psmImplementation);
-	slSpeedDepthExperiment experiment2(&fileInfrastructureGRAY, &graycodeImplementation);
+	/* Experiments */
+	slSpeedDepthExperiment experiment1(&fileInfrastructureBinary, &binaryImplementation);
+	slSpeedDepthExperiment experiment2(&fileInfrastructureGray, &grayCodedBinaryImplementation);
+	slSpeedDepthExperiment experiment3(&fileInfrastructurePhaseShift, &psmImplementation);
+	slSpeedDepthExperiment experiment4(&fileInfrastructureDeBruijn, &deBruijnImplementation);
+//	slSpeedDepthExperiment experiment5(&blenderVirtualInfrastructure, &groundTruthImplementation);
+
+//
 
 	experiment1.run();
 	experiment2.run();
+	experiment3.run();
+	experiment4.run();
+//	experiment5.run();
 
 	slSpeedBenchmark speedBenchmark;
 
 	speedBenchmark.addExperiment(&experiment1);
 	speedBenchmark.addExperiment(&experiment2);
+	speedBenchmark.addExperiment(&experiment3);
+	speedBenchmark.addExperiment(&experiment4);
+//	speedBenchmark.addExperiment(&experiment5);
 
 	speedBenchmark.compareExperiments();
+/*
+	slHTMLReportRenderer htmlReportRenderer;
 
+	htmlReportRenderer.addBenchmark(&speedBenchmark);
+
+	htmlReportRenderer.render();
+*/
 	return 0;
 }
 
@@ -74,37 +99,37 @@ int blenderInfrastructureExample() {
 	blenderVirtualInfrastructure.setCroppedArea(Rect(619, 0, 1118, 1080)); 
 //	fileInfrastructure.setCroppedArea(Rect(619, 0, 1118, 1080)); 
 
-//	BinaryImplementation binaryImplementation;
-//	GrayCodedBinaryImplementation grayCodedBinaryImplementation;
-//	PSMImplementation psmImplementation;
-//	DeBruijnImplementation deBruijnImplementation;
+	BinaryImplementation binaryImplementation;
+	GrayCodedBinaryImplementation grayCodedBinaryImplementation;
+	PSMImplementation psmImplementation;
+	DeBruijnImplementation deBruijnImplementation;
 	GroundTruthImplementation groundTruthImplementation;
 
-//	slSpeedDepthExperiment experiment1(&blenderVirtualInfrastructure, &binaryImplementation);
-//	slSpeedDepthExperiment experiment2(&blenderVirtualInfrastructure, &grayCodedBinaryImplementation);
-//	slSpeedDepthExperiment experiment3(&blenderVirtualInfrastructure, &psmImplementation);
-//	slSpeedDepthExperiment experiment4(&blenderVirtualInfrastructure, &deBruijnImplementation);
+	slSpeedDepthExperiment experiment1(&blenderVirtualInfrastructure, &binaryImplementation);
+	slSpeedDepthExperiment experiment2(&blenderVirtualInfrastructure, &grayCodedBinaryImplementation);
+	slSpeedDepthExperiment experiment3(&blenderVirtualInfrastructure, &psmImplementation);
+	slSpeedDepthExperiment experiment4(&blenderVirtualInfrastructure, &deBruijnImplementation);
+	slSpeedDepthExperiment experiment7(&blenderVirtualInfrastructure, &groundTruthImplementation);
 
 //	slSpeedDepthExperiment experiment5(&physicalInfrastructure, &deBruijnImplementation);
 //	slSpeedDepthExperiment experiment5(&physicalInfrastructure, &binaryImplementation);
 //	slSpeedDepthExperiment experiment6(&fileInfrastructure, &deBruijnImplementation);
 //
-	slSpeedDepthExperiment experiment7(&blenderVirtualInfrastructure, &groundTruthImplementation);
 
-//	experiment1.run();
-//	experiment2.run();
-//	experiment3.run();
-//	experiment4.run();
+	experiment1.run();
+	experiment2.run();
+	experiment3.run();
+	experiment4.run();
 //	experiment5.run();
 //	experiment6.run();
 	experiment7.run();
 
 	slSpeedBenchmark speedBenchmark;
 
-//	speedBenchmark.addExperiment(&experiment1);
-//	speedBenchmark.addExperiment(&experiment2);
-//	speedBenchmark.addExperiment(&experiment3);
-//	speedBenchmark.addExperiment(&experiment4);
+	speedBenchmark.addExperiment(&experiment1);
+	speedBenchmark.addExperiment(&experiment2);
+	speedBenchmark.addExperiment(&experiment3);
+	speedBenchmark.addExperiment(&experiment4);
 //	speedBenchmark.addExperiment(&experiment5);
 //	speedBenchmark.addExperiment(&experiment6);
 	speedBenchmark.addExperiment(&experiment7);
@@ -122,6 +147,7 @@ int blenderInfrastructureExample() {
 
 int main()
 {
+	return fileInfrastructureExample();
 //	return blenderInfrastructureExample();
-	return groundTruthExample();
+//	return groundTruthExample();
 }

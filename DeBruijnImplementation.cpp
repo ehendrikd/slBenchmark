@@ -1,20 +1,35 @@
 #include "DeBruijnImplementation.h"
 
-DeBruijnImplementation::DeBruijnImplementation(): slImplementation(string("DeBruijnImplementation")) {
+DeBruijnImplementation::DeBruijnImplementation(): slImplementation(string("DeBruijnImplementation")),numberEdges(124) {
 }
 
+DeBruijnImplementation::DeBruijnImplementation(unsigned int numEdges): slImplementation(string("DeBruijnImplementation")),numberEdges(numEdges) {
+}
 void DeBruijnImplementation::preExperimentRun() {
 	slInfrastructure *infrastructure = experiment->getInfrastructure();
 
-	transitions = new Vec3s[DEBRUIJN_NUM_EDGES];
+	transitions = new Vec3s[getNumberEdges()];
 }
 
 void DeBruijnImplementation::postExperimentRun() {
 	delete[] transitions;
 }
 
+// For these implementations, the "width" of the pattern
+// is the number of columns.
+double DeBruijnImplementation::getPatternWidth() {
+	return this->getNumberColumns();
+}
 bool DeBruijnImplementation::hasMoreIterations() {
         return experiment->getIterationIndex() < 1;
+}
+
+unsigned int DeBruijnImplementation::getNumberColumns() {
+    return this->numberEdges+1;
+}
+
+unsigned int DeBruijnImplementation::getNumberEdges() {
+    return this->numberEdges;
 }
 
 Mat DeBruijnImplementation::generatePattern() {
@@ -23,7 +38,7 @@ Mat DeBruijnImplementation::generatePattern() {
 	int screenWidth = (int)cameraResolution.width;
 	int screenHeight = (int)cameraResolution.height;
 
-	float columnWidth = (float)screenWidth / (float)(DEBRUIJN_NUM_EDGES + 1);
+	float columnWidth = (float)screenWidth / getNumberColumns();
 
 	int size = DEBRUIJN_K * DEBRUIJN_N;
 	vector<int> a(size), sequence;
@@ -36,7 +51,7 @@ Mat DeBruijnImplementation::generatePattern() {
 	float columnX = 0;
 	int pj = 1;
 
-	for (int columnIndex = 0; columnIndex < (DEBRUIJN_NUM_EDGES + 1); columnIndex++) {
+	for (int columnIndex = 0; columnIndex < getNumberColumns(); columnIndex++) {
 		int dj = sequence[columnIndex] + 1;
 
 		int pjInit = pj;
@@ -75,7 +90,7 @@ void DeBruijnImplementation::postIterationsProcess() {
 	Rect croppedArea = infrastructure->getCroppedArea();
 	Mat captureMat = experiment->getLastCapture();
 
-	float columnWidth = (float)infrastructure->getCameraResolution().width / (float)(DEBRUIJN_NUM_EDGES + 1);
+	float columnWidth = (float)infrastructure->getCameraResolution().width / (float)getNumberColumns();
 
 	for (int y = 0; y < croppedArea.height; y++) {
 		int prevR = 0;
@@ -118,24 +133,24 @@ void DeBruijnImplementation::postIterationsProcess() {
 		S = (pairScore**) malloc(edgeIndex * sizeof(*S));
 
 		for (int i = 0; i< edgeIndex; i++) { 
-			S[i] = (pairScore*)malloc(DEBRUIJN_NUM_EDGES * sizeof(pairScore));
+			S[i] = (pairScore*)malloc(getNumberEdges() * sizeof(pairScore));
 
-			for (int j = 0;j < DEBRUIJN_NUM_EDGES; j++) {
+			for (int j = 0;j < getNumberEdges(); j++) {
 				S[i][j].score = 0;
 				S[i][j].numberItems = 0;
 				S[i][j].caseSigma = 0;
 			}
 		}
 
-		sigma(edgeIndex - 1, DEBRUIJN_NUM_EDGES - 1, transitions, edges, S);
+		sigma(edgeIndex - 1, getNumberEdges() - 1, transitions, edges, S);
 
-		nCorrespondences = S[edgeIndex - 1][DEBRUIJN_NUM_EDGES - 1].numberItems;
+		nCorrespondences = S[edgeIndex - 1][getNumberEdges() - 1].numberItems;
 		
 //		DB("Number of correspondences for y=" << y << ": " << nCorrespondences)
 
 		int (*correspondences)[2] = new int[nCorrespondences][2];
 		
-		populateCorrespondences(edgeIndex - 1, DEBRUIJN_NUM_EDGES - 1, correspondences, S);
+		populateCorrespondences(edgeIndex - 1, getNumberEdges() - 1, correspondences, S);
 
 		for (int i = 0; i < edgeIndex; i++) {
 			free(S[i]);
@@ -146,12 +161,11 @@ void DeBruijnImplementation::postIterationsProcess() {
 			int newX = correspondences[i][0];
 			int x = correspondence[newX];
 
-			int xPos = (correspondences[i][1] + 1) * columnWidth;
+			int xPos = (correspondences[i][1] + 1);
 			
-			double displacement = 
-				((double)xPos / (double)infrastructure->getCameraResolution().width) - ((double)x / (double)croppedArea.width);
+			double displacement = getDisplacement(xPos,x);
 
-			slDepthExperimentResult result(x, y, displacement * DEBRUIJN_Z_SCALE);
+			slDepthExperimentResult result(x, y, displacement * this->getScale());
 			experiment->storeResult(&result);
     		}
 

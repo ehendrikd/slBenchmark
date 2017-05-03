@@ -3,8 +3,6 @@
 
 #include "slBenchmark.h"
 
-#define DEBRUIJN_Z_SCALE 10000
-
 #define DEBRUIJN_K 5
 #define DEBRUIJN_N 3
 
@@ -26,13 +24,18 @@ typedef struct {
 class DeBruijnImplementation : public slImplementation {
 	public:
 		DeBruijnImplementation();
+		// Add a constructor to allow for a different number of edges
+		DeBruijnImplementation(unsigned int);
 		virtual ~DeBruijnImplementation() {};
 		void preExperimentRun();
 		void postExperimentRun();
+		virtual double getPatternWidth();
 		bool hasMoreIterations();
 		virtual Mat generatePattern();
 		void calculateCroppedCapture();
 		virtual void postIterationsProcess();
+		unsigned int getNumberColumns();
+		unsigned int getNumberEdges();
 
 	protected:
 		void db(int, int, int, int, vector<int> &, vector<int> &);
@@ -42,6 +45,8 @@ class DeBruijnImplementation : public slImplementation {
 		double sigma(int, int, Vec3s *, Vec3s *, pairScore **);
 		void populateCorrespondences(int, int, int[][2], pairScore **);
 		Vec3s *transitions;
+	private:
+    		double numberEdges;
 };
 
 #endif //DEBRUIJN_IMPLEMENTATION_H

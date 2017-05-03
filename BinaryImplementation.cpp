@@ -17,6 +17,16 @@ void BinaryImplementation::preExperimentRun() {
 	}
 }
 
+// For binary implementations, the "width" of the pattern
+// is the number of columns.
+double BinaryImplementation::getPatternWidth() {
+	return (double) this->getNumberColumns();
+}
+
+unsigned int BinaryImplementation::getNumberColumns() {
+    return this->numberColumns;
+}
+
 void BinaryImplementation::postExperimentRun() {
 	delete[] binaryCode;
 }
@@ -96,10 +106,8 @@ void BinaryImplementation::postIterationsProcess() {
 
 			if (currentBinaryCode != -1 && currentBinaryCode != lastBinaryCode) {
 				
-				double displacement = 
-					((double)x / (double)croppedArea.width) - ((double)currentBinaryCode / (double)numberColumns);
-
-				slDepthExperimentResult result(x, y, displacement * BINARY_Z_SCALE);
+				double displacement = getDisplacement(currentBinaryCode,x);
+				slDepthExperimentResult result(x, y, displacement * this->getScale());
 				experiment->storeResult(&result);
 
 				lastBinaryCode = currentBinaryCode;

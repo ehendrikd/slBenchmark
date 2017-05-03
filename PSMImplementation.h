@@ -7,12 +7,6 @@
 #define PSM_NOISE_THRESHOLD 0.1
 #define PSM_TWO_PI 6.2831853
 #define PSM_TWO_PI_ON_3 PSM_TWO_PI / 3.0
-#define PSM_NUM_COLS 32
-
-#define PSM_Z_SCALE 10000
-//#define PSM_Z_SCALE 100
-//#define PSM_Z_SKEW 24
-//#define PSM_Z_SKEW 6
 
 #define PSM_RENDER_DETAIL 7
 
@@ -38,12 +32,16 @@ struct CompareWrappedPixel {
 class PSMImplementation : public slImplementation {
 	public:
 		PSMImplementation();
+		// Constructor to set the number of columns to something else that 32...
+		PSMImplementation(unsigned int); 
 		virtual ~PSMImplementation() {};
 		void preExperimentRun();
 		void postExperimentRun();
 		bool hasMoreIterations();
+		virtual double getPatternWidth();
 		virtual Mat generatePattern();
 		virtual void postIterationsProcess();
+		unsigned int getNumberColumns();
 
 	private:
 		float diff(float, float);
@@ -55,6 +53,8 @@ class PSMImplementation : public slImplementation {
 		void phaseUnwrap(int, int, float, float);
 		void phaseUnwrap();
 		void makeDepth();
+
+		unsigned int numberColumns;
 
 		priority_queue<WrappedPixel, vector<WrappedPixel>, CompareWrappedPixel> *pixelsToProcess;
 

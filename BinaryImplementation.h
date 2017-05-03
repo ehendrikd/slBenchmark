@@ -11,8 +11,6 @@
 #define BINARY_WHITE_THRESHOLD 50
 #define BINARY_BLACK_THRESHOLD -50
 
-#define BINARY_Z_SCALE 10000
-
 using namespace cv;
 
 class BinaryImplementation : public slImplementation {
@@ -21,13 +19,15 @@ class BinaryImplementation : public slImplementation {
 		virtual ~BinaryImplementation() {};
 		void preExperimentRun();
 		void postExperimentRun();
+	        virtual double getPatternWidth();
 		bool hasMoreIterations();
 		virtual Mat generatePattern();
 		virtual void iterationProcess();
 		virtual void postIterationsProcess();
+		unsigned int getNumberColumns();
 
 	protected:
-		int numberColumns;
+		unsigned int numberColumns;
 		int *binaryCode;
 };
 

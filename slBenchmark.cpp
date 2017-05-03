@@ -42,8 +42,12 @@ int makeDir(const char* name) {
  * slImplementation
  */ 
 
+//Create a structured light implementation with default scale
+slImplementation::slImplementation(string newIdentifier): identifier(newIdentifier), experiment(NULL), zscale(10000) {
+}
+
 //Create a structured light implementation instance with an identifier
-slImplementation::slImplementation(string newIdentifier): identifier(newIdentifier), experiment(NULL) {
+slImplementation::slImplementation(string newIdentifier,double scale): identifier(newIdentifier), experiment(NULL), zscale(scale) {
 }
 
 //Set the identifier
@@ -51,9 +55,31 @@ void slImplementation::setIdentifier(string newIdentifier) {
 	identifier = newIdentifier;
 }
 
+double slImplementation::getPatternWidth() {
+	return experiment->getInfrastructure()->getCameraResolution().width;
+}
+
+double slImplementation::getCaptureWidth() {
+	return experiment->getInfrastructure()->getCroppedArea().width;
+}
+
+double slImplementation::getDisplacement(double x_pattern, double x_image) {
+	return (x_image / getCaptureWidth()) - (x_pattern / getPatternWidth());
+}
+
 //Get the identifier
 string slImplementation::getIdentifier() {
 	return identifier;
+}
+
+//Set the scale
+void slImplementation::setScale(double s) {
+	this->zscale = s;
+}
+
+//Get the scale
+double slImplementation::getScale() {
+	return zscale;
 }
 
 //Check if there are any more pattern generation and capture iterations
@@ -224,7 +250,7 @@ string slExperiment::getPath() {
 	if (path.empty()) {
 		stringstream pathStream;
 
-		pathStream << slExperiment::getSessionPath() << clock() << OS_SEP;
+		pathStream << getSessionPath() << getIdentifier() << clock() << OS_SEP;
 		path =  pathStream.str();
 
 		makeDir(path.c_str());
@@ -421,7 +447,8 @@ int slExperiment::getNumberCaptures() {
 string slExperiment::getIdentifier() {
 	stringstream identifierStream;
 
-	identifierStream << "Experiment infrastructure: " << infrastructure->getName() << " implementation: " << implementation->getIdentifier();
+	identifierStream <<  infrastructure->getName() << implementation->getIdentifier();
+//	identifierStream << "Experiment infrastructure: " << infrastructure->getName() << " implementation: " << implementation->getIdentifier();
 
 	return identifierStream.str();
 }
