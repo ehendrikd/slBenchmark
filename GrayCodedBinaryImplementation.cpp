@@ -5,36 +5,29 @@ GrayCodedBinaryImplementation::GrayCodedBinaryImplementation() {
 }
 
 Mat GrayCodedBinaryImplementation::generatePattern() {
+	Mat pattern;
+	Scalar colour;
 	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
+	int cameraWidth = (int)cameraResolution.width;
+	int cameraHeight = (int)cameraResolution.height;
 
-	int iterationIndex = experiment->getIterationIndex();
 
-	int screenWidth = (int)cameraResolution.width;
-	int screenHeight = (int)cameraResolution.height;
+	generateBackground(pattern,colour);
 
-	Mat pattern(screenHeight, screenWidth, CV_8UC3, Scalar(BINARY_WHITE_VAL, BINARY_WHITE_VAL, BINARY_WHITE_VAL));
-	Scalar colour(BINARY_BLACK_VAL, BINARY_BLACK_VAL, BINARY_BLACK_VAL);
-
-	if (iterationIndex % 2 == 0) {
-		numberColumns *= 2;
-	} else {
-		pattern.setTo(Scalar(BINARY_BLACK_VAL, BINARY_BLACK_VAL, BINARY_BLACK_VAL));
-		colour = Scalar(BINARY_WHITE_VAL, BINARY_WHITE_VAL, BINARY_WHITE_VAL);
-	}
-
-	int columnWidth = screenWidth / numberColumns;
+	int columnWidth = cameraWidth / numberColumns;
 	int doubleColumnWidth = columnWidth * 2;
 	int xPos = 0;
 
 	for (int columnIndex = 0; columnIndex < numberColumns; columnIndex++) {
 		if (columnIndex % 4 == 1) {
-			rectangle(pattern, Point(xPos, 0), Point((xPos + doubleColumnWidth) - 1, screenHeight), colour, FILLED);
+			rectangle(pattern, Point(xPos, 0), Point((xPos + doubleColumnWidth) - 1, cameraHeight), colour, FILLED);
 		}
 		xPos += columnWidth;
 	}
 
 	return pattern;
 }
+
 /* FOR ADAPTIVE!!!!
 void GrayCodedBinaryImplementation::iterationProcess() {
 	if (benchmark->getIterationIndex() % 2 != 0) {
@@ -92,7 +85,7 @@ void GrayCodedBinaryImplementation::postIterationsProcess() {
 
 			if (currentBinaryCode != -1 && currentBinaryCode != lastBinaryCode) {
 				
-				double xPattern = (double)convertGrayCodeToInteger(currentBinaryCode, numberColumns, BINARY_NUM_PATTERNS);
+				double xPattern = (double)convertGrayCodeToInteger(currentBinaryCode, numberColumns, getNumberPatterns());
 				double displacement = getDisplacement(xPattern,x);
 				double z = displacement * this->getScale();
 

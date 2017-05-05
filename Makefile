@@ -31,3 +31,6 @@ $(LIBOBJS):%.o: %.cpp %.h
 
 clean:
 	-$(RM) $(LIBOBJS) main
+
+clean_experiments:
+	-$(RM) -r [0-9]*/
