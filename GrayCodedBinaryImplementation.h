@@ -9,7 +9,8 @@ class GrayCodedBinaryImplementation : public BinaryImplementation {
 		virtual ~GrayCodedBinaryImplementation() {};
 		virtual Mat generatePattern();
 		//virtual void iterationProcess();
-		virtual void postIterationsProcess();
+		//virtual void postIterationsProcess();
+		virtual int getBinaryCode(int, int);
 		int convertGrayCodeToInteger(int, int, int);
 };
 

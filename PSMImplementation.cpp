@@ -1,8 +1,10 @@
 #include "PSMImplementation.h"
 
-PSMImplementation::PSMImplementation(): slImplementation(string("PSMImplementation")) {
+PSMImplementation::PSMImplementation(): slImplementation(string("PSMImplementation")),numberColumns(32) {
 }
 
+PSMImplementation::PSMImplementation(unsigned int nCol): slImplementation(string("PSMImplementation")),numberColumns(nCol) {
+}
 void PSMImplementation::preExperimentRun() {
 	pixelsToProcess = new priority_queue<WrappedPixel, vector<WrappedPixel>, CompareWrappedPixel>();
 
@@ -31,6 +33,16 @@ bool PSMImplementation::hasMoreIterations() {
         return experiment->getIterationIndex() < 3;
 }
 
+unsigned int PSMImplementation::getNumberColumns() {
+    return this->numberColumns;
+}
+
+// For Phase shift methods we use the number of columns
+// to determine the "size" of the pattern...
+double PSMImplementation::getPatternWidth() {
+    return (double) getNumberColumns();
+}
+
 Mat PSMImplementation::generatePattern() {
 	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 
@@ -39,13 +51,13 @@ Mat PSMImplementation::generatePattern() {
 	int screenWidth = (int)cameraResolution.width;
 	int screenHeight = (int)cameraResolution.height;
 
-	int columnWidth = screenWidth / PSM_NUM_COLS;
+	int columnWidth = screenWidth / getNumberColumns();
 
 	float offset = -1.6;
 	
 	Mat pattern(screenHeight, screenWidth, CV_8UC3);
 
-	for (int column = 0; column < PSM_NUM_COLS; column++) {
+	for (int column = 0; column < getNumberColumns(); column++) {
 		int columnX = (column * columnWidth);
 
 		for (int x = columnX; x < (columnX + columnWidth); x++) {
@@ -239,16 +251,12 @@ void PSMImplementation::makeDepth() {
 
 	for (int y = 0; y < croppedArea.height; y += PSM_RENDER_DETAIL) {
 		for (int x = 0; x < croppedArea.width; x += PSM_RENDER_DETAIL) {
-			// planephase is 0 at the right border of the image, 1/2 in the middle and 1 at the
-			// left border of the image.
-			double planephase = 0.5f - ((x - (croppedArea.width / 2.0f)) / croppedArea.width);
 			int arrayOffset = (y * croppedArea.width) + x;
 
 			if (mask[arrayOffset] == 0) {
-				// xScaled should give us the position of the point in the projected picture (scaled to [0,1]).
-				double xScaled = phase[arrayOffset] / PSM_NUM_COLS + 0.5f;
-				double displacement = xScaled - planephase;
-				double z = displacement * PSM_Z_SCALE;
+				double xPos = getNumberColumns()/2 - phase[arrayOffset];
+				double displacement = getDisplacement(xPos,x);
+				double z = displacement * this->getScale();
 				slDepthExperimentResult result(x, y, z);
 				experiment->storeResult(&result);
 			}

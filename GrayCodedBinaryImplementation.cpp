@@ -5,36 +5,38 @@ GrayCodedBinaryImplementation::GrayCodedBinaryImplementation() {
 }
 
 Mat GrayCodedBinaryImplementation::generatePattern() {
+	Mat pattern;
+	Scalar colour;
 	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
+	int cameraWidth = (int)cameraResolution.width;
+	int cameraHeight = (int)cameraResolution.height;
 
-	int iterationIndex = experiment->getIterationIndex();
 
-	int screenWidth = (int)cameraResolution.width;
-	int screenHeight = (int)cameraResolution.height;
+	generateBackground(pattern,colour);
 
-	Mat pattern(screenHeight, screenWidth, CV_8UC3, Scalar(BINARY_WHITE_VAL, BINARY_WHITE_VAL, BINARY_WHITE_VAL));
-	Scalar colour(BINARY_BLACK_VAL, BINARY_BLACK_VAL, BINARY_BLACK_VAL);
-
-	if (iterationIndex % 2 == 0) {
-		numberColumns *= 2;
-	} else {
-		pattern.setTo(Scalar(BINARY_BLACK_VAL, BINARY_BLACK_VAL, BINARY_BLACK_VAL));
-		colour = Scalar(BINARY_WHITE_VAL, BINARY_WHITE_VAL, BINARY_WHITE_VAL);
-	}
-
-	int columnWidth = screenWidth / numberColumns;
+	int columnWidth = cameraWidth / numberColumns;
 	int doubleColumnWidth = columnWidth * 2;
 	int xPos = 0;
 
 	for (int columnIndex = 0; columnIndex < numberColumns; columnIndex++) {
 		if (columnIndex % 4 == 1) {
-			rectangle(pattern, Point(xPos, 0), Point((xPos + doubleColumnWidth) - 1, screenHeight), colour, FILLED);
+			rectangle(pattern, Point(xPos, 0), Point((xPos + doubleColumnWidth) - 1, cameraHeight), colour, FILLED);
 		}
 		xPos += columnWidth;
 	}
 
 	return pattern;
 }
+
+// Getters and Setters
+int GrayCodedBinaryImplementation::getBinaryCode(int x, int y) {
+    Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+    int binCode = this->binaryCode[(y * croppedArea.width) + x];
+    if(binCode == -1) return -1;
+    return convertGrayCodeToInteger(binCode, numberColumns, getNumberPatterns());
+}
+
+
 /* FOR ADAPTIVE!!!!
 void GrayCodedBinaryImplementation::iterationProcess() {
 	if (benchmark->getIterationIndex() % 2 != 0) {
@@ -80,31 +82,6 @@ void GrayCodedBinaryImplementation::iterationProcess() {
 	}
 }
 */
-
-void GrayCodedBinaryImplementation::postIterationsProcess() {
-	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
-
-	for (int y = 0; y < croppedArea.height; y++) {
-		int lastBinaryCode = -1;
-
-		for (int x = 0; x < croppedArea.width; x++) {
-			double xCamera = (double)x / (double)croppedArea.width;
-			int currentBinaryCode = binaryCode[(y * croppedArea.width) + x];
-
-			if (currentBinaryCode != -1 && currentBinaryCode != lastBinaryCode) {
-				
-				double xPattern = ((double)convertGrayCodeToInteger(currentBinaryCode, numberColumns, BINARY_NUM_PATTERNS) / (double)numberColumns);
-				double displacement = xCamera - xPattern;
-				double z = displacement * BINARY_Z_SCALE;
-
-				slDepthExperimentResult result(x, y, displacement * BINARY_Z_SCALE);
-				experiment->storeResult(&result);
-
-				lastBinaryCode = currentBinaryCode;
-			}
-		}
-	}
-}
 
 int GrayCodedBinaryImplementation::convertGrayCodeToInteger(int grayCodeToConvert, int numberColumns, int numberPatterns) {
 	int result = grayCodeToConvert;

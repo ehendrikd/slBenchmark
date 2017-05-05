@@ -69,8 +69,11 @@ class slExperiment;
 //Abstract class that defines a structured light implementation
 class slImplementation {
 	public:
-		//Create a structured light implementation instance with an identifier
+		//Create a structured light implementation instance with an identifier (default scale)
 		slImplementation(string);
+
+		//Create a structured light implementation instance with an identifier, specifying a scale
+		slImplementation(string,double);
 
 		//Clean up
 		virtual ~slImplementation() {};
@@ -80,6 +83,15 @@ class slImplementation {
 
 		//Initialise after an experiment has run
 		virtual void postExperimentRun() {};
+
+    // Get the width of the pattern and of the capture image.
+		// Typically this will be the image x-resultion, but this
+		// allows for the image to be cropped, and to take into account
+		// patterns with columns.
+                virtual double getPatternWidth();
+                virtual double getCaptureWidth();
+    //Compute the depth from a pair of x coordinates from the projection pattern and the image
+		virtual double getDisplacement(double,double);
 
 		//Get the identifier
 		string getIdentifier();
@@ -99,9 +111,13 @@ class slImplementation {
 		//A reference to the current experiment
 		slExperiment *experiment;
 
+               //Get the scale
+		double getScale();
+
 	protected:
 		//Set the identifier
 		void setIdentifier(string);
+		void setScale(double);
 
 	private:
 		//Initailise this structured light implementation instance
@@ -109,6 +125,11 @@ class slImplementation {
 
 		//A string used to identify this implementation
 		string identifier;
+
+		//The scaling factor for the depth.
+		// This number is multiplied to the calculated depth to
+		// avoid skewed results.
+		double zscale;
 };
 
 //Abstract infrastruture (projector and camera) class used for the benchmarking
@@ -285,7 +306,7 @@ class slExperiment {
 		//The infrastructure used for this experiment
 		slInfrastructure *infrastructure;
 
-		//The implememntation being tested in this experiement
+		//The implementation being tested in this experiement
 		slImplementation *implementation;
 
 	private:

@@ -72,11 +72,8 @@ void GroundTruthImplementation::postIterationsProcess() {
 
 			//if (currentBinaryCode != -1 && currentBinaryCode != lastBinaryCode) {
 			if (currentOriginalColumn != -1) {
-				
-				double displacement = 
-					((double)x / (double)croppedArea.width) - ((double)currentOriginalColumn / (double)experiment->getInfrastructure()->getCameraResolution().width);
-
-				slDepthExperimentResult result(x, y, displacement * GROUND_TRUTH_Z_SCALE);
+				double displacement = getDisplacement(currentOriginalColumn,x);
+				slDepthExperimentResult result(x, y, displacement * this->getScale());
 				experiment->storeResult(&result);
 
 				//lastBinaryCode = currentBinaryCode;

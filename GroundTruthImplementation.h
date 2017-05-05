@@ -8,8 +8,6 @@
 
 #define GROUND_TRUTH_WHITE_THRESHOLD 50
 
-#define GROUND_TRUTH_Z_SCALE 10000
-
 using namespace cv;
 
 class GroundTruthImplementation : public slImplementation {
