@@ -28,6 +28,15 @@ Mat GrayCodedBinaryImplementation::generatePattern() {
 	return pattern;
 }
 
+// Getters and Setters
+int GrayCodedBinaryImplementation::getBinaryCode(int x, int y) {
+    Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+    int binCode = this->binaryCode[(y * croppedArea.width) + x];
+    if(binCode == -1) return -1;
+    return convertGrayCodeToInteger(binCode, numberColumns, getNumberPatterns());
+}
+
+
 /* FOR ADAPTIVE!!!!
 void GrayCodedBinaryImplementation::iterationProcess() {
 	if (benchmark->getIterationIndex() % 2 != 0) {
@@ -73,30 +82,6 @@ void GrayCodedBinaryImplementation::iterationProcess() {
 	}
 }
 */
-
-void GrayCodedBinaryImplementation::postIterationsProcess() {
-	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
-
-	for (int y = 0; y < croppedArea.height; y++) {
-		int lastBinaryCode = -1;
-
-		for (int x = 0; x < croppedArea.width; x++) {
-			int currentBinaryCode = binaryCode[(y * croppedArea.width) + x];
-
-			if (currentBinaryCode != -1 && currentBinaryCode != lastBinaryCode) {
-				
-				double xPattern = (double)convertGrayCodeToInteger(currentBinaryCode, numberColumns, getNumberPatterns());
-				double displacement = getDisplacement(xPattern,x);
-				double z = displacement * this->getScale();
-
-				slDepthExperimentResult result(x, y, z);
-				experiment->storeResult(&result);
-
-				lastBinaryCode = currentBinaryCode;
-			}
-		}
-	}
-}
 
 int GrayCodedBinaryImplementation::convertGrayCodeToInteger(int grayCodeToConvert, int numberColumns, int numberPatterns) {
 	int result = grayCodeToConvert;

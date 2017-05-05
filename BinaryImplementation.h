@@ -21,6 +21,7 @@ class BinaryImplementation : public slImplementation {
 		//Getters and Setters
 		unsigned int getNumberPatterns();
 		unsigned int getNumberColumns();
+		virtual int getBinaryCode(int, int);
 
                 // The next function determine whether a colour can be
                 // considered to be white or black. This is determined by 

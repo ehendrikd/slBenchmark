@@ -36,6 +36,11 @@ unsigned int BinaryImplementation::getNumberColumns() {
     return this->numberColumns;
 }
 
+int BinaryImplementation::getBinaryCode(int x, int y) {
+    Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+    return this->binaryCode[(y * croppedArea.width) + x];
+}
+
 void BinaryImplementation::postExperimentRun() {
 	delete[] binaryCode;
 }
@@ -107,11 +112,6 @@ void BinaryImplementation::iterationProcess() {
 				int negativeColourTotal = (int)negativePixelBGR[0] + (int)negativePixelBGR[1] + (int)negativePixelBGR[2];
 
 				int colourDifference = guessColour(positiveColourTotal - negativeColourTotal);
-if (x==0 && y==0) {
-    DB(x << " " << y << " " << colourDifference);
-    DB(positiveColourTotal << " " << negativeColourTotal);
-}
-
 
 				int arrayOffset = (y * croppedArea.width) + x;
 
@@ -124,17 +124,16 @@ if (x==0 && y==0) {
 }
 
 void BinaryImplementation::postIterationsProcess() {
-	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
-
+        Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
 	for (int y = 0; y < croppedArea.height; y++) {
 		int lastBinaryCode = -1;
 
 		for (int x = 0; x < croppedArea.width; x++) {
-			int currentBinaryCode = binaryCode[(y * croppedArea.width) + x];
+			int currentBinaryCode = getBinaryCode(x,y);
 
 			if (currentBinaryCode != -1 && currentBinaryCode != lastBinaryCode) {
 				
-				double displacement = getDisplacement(currentBinaryCode,x);
+				double displacement = getDisplacement((double)currentBinaryCode,x);
 				slDepthExperimentResult result(x, y, displacement * this->getScale());
 				experiment->storeResult(&result);
 
