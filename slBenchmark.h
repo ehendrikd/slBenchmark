@@ -84,13 +84,14 @@ class slImplementation {
 		//Initialise after an experiment has run
 		virtual void postExperimentRun() {};
 
-    // Get the width of the pattern and of the capture image.
+		// Get the width of the pattern and of the capture image.
 		// Typically this will be the image x-resultion, but this
 		// allows for the image to be cropped, and to take into account
 		// patterns with columns.
                 virtual double getPatternWidth();
                 virtual double getCaptureWidth();
-    //Compute the depth from a pair of x coordinates from the projection pattern and the image
+
+		//Compute the depth from a pair of x coordinates from the projection pattern and the image
 		virtual double getDisplacement(double,double);
 
 		//Get the identifier
@@ -106,7 +107,17 @@ class slImplementation {
 		virtual void iterationProcess() {};
 
 		//Process after the interations
-		virtual void postIterationsProcess() {};
+		virtual void postIterationsProcess();
+		
+		//Process the capture(s)
+		virtual void processCaptures() {};
+
+		//Iterate through the captures to solve the correseponce problem
+		virtual void iterateCorrespondences();
+
+		//Solve the correspondence problem
+		//virtual double solveCorrespondence(int, int) = 0; 
+		virtual double solveCorrespondence(int, int) {return 0;} 
 
 		//A reference to the current experiment
 		slExperiment *experiment;
@@ -117,6 +128,8 @@ class slImplementation {
 	protected:
 		//Set the identifier
 		void setIdentifier(string);
+
+		//Set the scale
 		void setScale(double);
 
 	private:
@@ -436,35 +449,4 @@ class slSpeedBenchmark : public slBenchmark {
 		//Compare the experiments of this benchmark
 		virtual void compareExperiments();
 };
-
-/*
-//Abstract class that renderers human readable forms of the benchmarks
-class slResultRenderer {
-	public:
-		//Render the results to the benchmark path
-		void render(string);
-
-		//Render the header
-		virtual string renderHeader();
-
-		//Render the footer
-		virtual string renderFooter();
-
-		//Render a paragraph
-		virtual string renderParagraph(string) = 0;
-};
-
-//Render a HTML page of the results
-class slHTMLResultRenderer : public slResultRenderer {
-	public:
-		//Render the header
-		string renderHeader();
-
-		//Render the footer
-		string renderFooter();
-
-		//Render a paragraph
-		string renderParagraph(string);
-};
-*/
 #endif //SLBENCHMARK_H

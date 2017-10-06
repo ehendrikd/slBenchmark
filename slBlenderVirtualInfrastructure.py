@@ -77,6 +77,8 @@ if __name__ == "__main__":
 	projector.use_square = True
 	projector.show_cone = True
 	projector.energy = getNumber(projectorObjectJson['intensity'])
+	projector.falloff_type = 'CONSTANT'
+	projector.spot_blend = 0
 
 	image = bpy.data.images.load(patternPath)
 	texture = bpy.data.textures.new('ColorTex', type = 'IMAGE')
@@ -96,11 +98,15 @@ if __name__ == "__main__":
 
 	bpy.ops.object.camera_add(location=getTuple(cameraObjectJson['location']), rotation=getTuple(cameraObjectJson['rotation'], True))
 	camera = bpy.context.object
+	#camera.data.type = 'ORTHO'
+	#camera.data.ortho_scale = 8.69
 	bpy.context.scene.camera = camera
 
 
 	bpy.context.scene.render.resolution_x = cameraWidth
 	bpy.context.scene.render.resolution_y = cameraHeight
+	#bpy.context.scene.render.resolution_x = 65536
+	#bpy.context.scene.render.resolution_y = 100
 	bpy.context.scene.render.resolution_percentage = 100
 
 	bpy.context.scene.render.filepath = capturePath

@@ -3,20 +3,13 @@
 	[
 		{
 			"type":		"plane",
-			"rotation":	[45, 90, 0],
-			"scale":	[2, 2, 1],
-			"location":	[0, -1.5, 0]
-		},
-		{
-			"type":		"plane",
-			"rotation":	[-45, 90, 0],
-			"scale":	[2, 2, 1],
-			"location":	[0, 1.5, 0]
+			"rotation":	[0, 90, 0],
+			"scale":	[5, 5, 1]
 		}
 	],
 	"projector":
 	{
-		"location":		[9.5, 0.5, 0],
+		"location":		[9.5, 0, 0],
 		"rotation":		[0, 90, 0],
 		"rotation_euler":	[90, 0, 0],
 		"focal_length":		10.44,
@@ -25,7 +18,7 @@
 	},
 	"camera":
 	{
-		"location":		[9.5, -0.5, 0],
+		"location":		[9.5, 0, 0],
 		"rotation":		[90, 0, 90]
 	},
 	"save_scene_file":	true

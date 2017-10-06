@@ -122,9 +122,10 @@ void BinaryImplementation::iterationProcess() {
 		}	
 	}
 }
-
+/*
 void BinaryImplementation::postIterationsProcess() {
         Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+	double width = experiment->getInfrastructure()->getCameraResolution().width/getNumberColumns();
 	for (int y = 0; y < croppedArea.height; y++) {
 		int lastBinaryCode = -1;
 
@@ -134,7 +135,7 @@ void BinaryImplementation::postIterationsProcess() {
 			if (currentBinaryCode != -1 && currentBinaryCode != lastBinaryCode) {
 				
 				double displacement = getDisplacement((double)currentBinaryCode,x);
-				slDepthExperimentResult result(x, y, displacement * this->getScale());
+				slDepthExperimentResult result(currentBinaryCode*width/2, y, displacement * this->getScale());
 				experiment->storeResult(&result);
 
 				lastBinaryCode = currentBinaryCode;
@@ -142,3 +143,20 @@ void BinaryImplementation::postIterationsProcess() {
 		}
 	}
 }
+*/
+double BinaryImplementation::solveCorrespondence(int x, int y) {
+	static int lastBinaryCode = -1;
+
+	if (x == 0) {
+		lastBinaryCode = -1;
+	}
+
+	int currentBinaryCode = getBinaryCode(x,y);
+
+	if (currentBinaryCode != -1 && currentBinaryCode != lastBinaryCode) {
+		lastBinaryCode = currentBinaryCode;
+		return (double)currentBinaryCode;
+	}
+
+	return -1;
+}	

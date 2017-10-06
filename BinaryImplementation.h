@@ -17,7 +17,7 @@ class BinaryImplementation : public slImplementation {
 		bool hasMoreIterations();
 		virtual Mat generatePattern();
 		virtual void iterationProcess();
-		virtual void postIterationsProcess();
+		//virtual void postIterationsProcess();
 		//Getters and Setters
 		unsigned int getNumberPatterns();
 		unsigned int getNumberColumns();
@@ -33,6 +33,8 @@ class BinaryImplementation : public slImplementation {
 		int guessColour(int);
 
 		void generateBackground(Mat &pattern, Scalar &colour);
+
+		virtual double solveCorrespondence(int, int);
 
 	protected:
 		unsigned int numberPatterns;

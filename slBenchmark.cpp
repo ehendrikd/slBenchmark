@@ -43,7 +43,10 @@ int makeDir(const char* name) {
  */ 
 
 //Create a structured light implementation with default scale
-slImplementation::slImplementation(string newIdentifier): identifier(newIdentifier), experiment(NULL), zscale(10000) {
+//slImplementation::slImplementation(string newIdentifier): identifier(newIdentifier), experiment(NULL), zscale(10000) {
+//slImplementation::slImplementation(string newIdentifier): identifier(newIdentifier), experiment(NULL), zscale(9.4237) {
+slImplementation::slImplementation(string newIdentifier): identifier(newIdentifier), experiment(NULL), zscale(9.49334) {
+//slImplementation::slImplementation(string newIdentifier): identifier(newIdentifier), experiment(NULL), zscale(10.554544) {
 }
 
 //Create a structured light implementation instance with an identifier
@@ -85,6 +88,37 @@ double slImplementation::getScale() {
 //Check if there are any more pattern generation and capture iterations
 bool slImplementation::hasMoreIterations() {
 	return experiment->getIterationIndex() == 0;
+}
+
+//Process after the interations
+void slImplementation::postIterationsProcess() {
+	processCaptures();
+	iterateCorrespondences();
+}
+
+//Iterate through the captures to solve the correseponce problem
+void slImplementation::iterateCorrespondences() {
+	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
+
+	for (int y = 0; y < cameraResolution.height; y++) {
+		for (int x = 0; x < cameraResolution.width; x++) {
+			double xSolved = solveCorrespondence(x,y);
+
+			if (!isnan(xSolved) && xSolved != -1) {				
+				//double displacement = getDisplacement(xSolved, x);
+				//double displacement = x <= (cameraResolution.width / 2) ? (double)x - xSolved : xSolved -(double)x;
+				//double displacement = (double)x - xSolved;
+				double displacement = xSolved - (double)x;
+				//double displacement = xSolved;
+				//slDepthExperimentResult result(x, y, displacement);
+				//slDepthExperimentResult result(x, y, displacement * this->getScale());
+				//slDepthExperimentResult result(x + 279, y, (displacement * this->getScale()) - 2083.51);
+				slDepthExperimentResult result(x + 279, y, (displacement * this->getScale()) - 2098.91);
+				//slDepthExperimentResult result(x, y, (displacement * this->getScale()) - 2210.93);
+				experiment->storeResult(&result);
+			}
+		}
+	}
 }
 
 /*
@@ -341,6 +375,8 @@ void slExperiment::run() {
 
 		//Store the capture for processing
 		storeCapture(captureMat(infrastructure->getCroppedArea()));
+		//storeCapture(captureMat);
+		DB("after")
 
 		//Create current capture file path
 		captureFileStream << capturesPathStream.str() << OS_SEP << "capture_" << iterationIndex << ".png";
