@@ -67,7 +67,21 @@ double slImplementation::getCaptureWidth() {
 }
 
 double slImplementation::getDisplacement(double x_pattern, double x_image) {
-	return (x_image / getCaptureWidth()) - (x_pattern / getPatternWidth());
+    // Proper calculation of displacement depends on the following parameters:
+    // * depth of view of the camera and of the projector
+    // * Resolution of the camera and the projector
+    // Optionally, we need also the following parameter:
+    // * distance between the camera and the project.
+    // Setting this will give an accurate depth. Otherwise, proportions 
+    // should be correct, but not to scale.
+    double xc = x_image/getCaptureWidth();
+    double xp = x_pattern/getPatternWidth();
+    double gammac,gammap;// depths of view in radians.
+    gammac = gammap = 49.134 * M_PI/180;  // TODO: build into the parameters of the class.
+    double tgc = tan(gammac), tgp = tan(gammap);
+    double Delta = 1; // Distance between camera and projector
+
+    return Delta / 2 / (tgc*xc - tgp*xp);
 }
 
 //Get the identifier
@@ -105,15 +119,11 @@ void slImplementation::iterateCorrespondences() {
 			double xSolved = solveCorrespondence(x,y);
 
 			if (!isnan(xSolved) && xSolved != -1) {				
-				//double displacement = getDisplacement(xSolved, x);
-				//double displacement = x <= (cameraResolution.width / 2) ? (double)x - xSolved : xSolved -(double)x;
-				//double displacement = (double)x - xSolved;
-				double displacement = xSolved - (double)x;
-				//double displacement = xSolved;
-				//slDepthExperimentResult result(x, y, displacement);
+				double displacement = getDisplacement(xSolved, x);
+				slDepthExperimentResult result(x, y, displacement);
 				//slDepthExperimentResult result(x, y, displacement * this->getScale());
 				//slDepthExperimentResult result(x + 279, y, (displacement * this->getScale()) - 2083.51);
-				slDepthExperimentResult result(x + 279, y, (displacement * this->getScale()) - 2098.91);
+				//slDepthExperimentResult result(x + 279, y, (displacement * this->getScale()) - 2098.91);
 				//slDepthExperimentResult result(x, y, (displacement * this->getScale()) - 2210.93);
 				experiment->storeResult(&result);
 			}
