@@ -27,6 +27,7 @@
 #define SLBENCHMARK_H
 
 #include <iostream>
+#include <iterator>
 #include <fstream>
 #include <stdlib.h>
 #include <ctime>
