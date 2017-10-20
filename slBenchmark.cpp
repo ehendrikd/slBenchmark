@@ -43,10 +43,7 @@ int makeDir(const char* name) {
  */ 
 
 //Create a structured light implementation with default scale
-//slImplementation::slImplementation(string newIdentifier): identifier(newIdentifier), experiment(NULL), zscale(10000) {
-//slImplementation::slImplementation(string newIdentifier): identifier(newIdentifier), experiment(NULL), zscale(9.4237) {
-slImplementation::slImplementation(string newIdentifier): identifier(newIdentifier), experiment(NULL), zscale(9.49334) {
-//slImplementation::slImplementation(string newIdentifier): identifier(newIdentifier), experiment(NULL), zscale(10.554544) {
+slImplementation::slImplementation(string newIdentifier): identifier(newIdentifier), experiment(NULL), zscale(1) {
 }
 
 //Create a structured light implementation instance with an identifier
@@ -78,7 +75,7 @@ double slImplementation::getDisplacement(double x_pattern, double x_image) {
     double xp = x_pattern/getPatternWidth();
     double gammac,gammap;// depths of view in radians.
     gammac = gammap = 49.134 * M_PI/180;  // TODO: build into the parameters of the class.
-    double tgc = tan(gammac), tgp = tan(gammap);
+    double tgc = tan(gammac/2), tgp = tan(gammap/2);
     double Delta = 1; // Distance between camera and projector
 
     return Delta / 2 / (tgc*xc - tgp*xp);
@@ -120,11 +117,7 @@ void slImplementation::iterateCorrespondences() {
 
 			if (!isnan(xSolved) && xSolved != -1) {				
 				double displacement = getDisplacement(xSolved, x);
-				slDepthExperimentResult result(x, y, displacement);
-				//slDepthExperimentResult result(x, y, displacement * this->getScale());
-				//slDepthExperimentResult result(x + 279, y, (displacement * this->getScale()) - 2083.51);
-				//slDepthExperimentResult result(x + 279, y, (displacement * this->getScale()) - 2098.91);
-				//slDepthExperimentResult result(x, y, (displacement * this->getScale()) - 2210.93);
+				slDepthExperimentResult result(x, y, displacement * this->getScale());
 				experiment->storeResult(&result);
 			}
 		}

@@ -17,6 +17,7 @@ def getDirection(camera):
 def getDirections(obj, camera, cameraWidth, cameraHeight, outputPath):
 	out = open(outputPath, 'w')
 	x, y, z = getDirection(camera)
+	zPixel = cameraWidth/(2*y)  # This the depth of the picture.
 
 	for yDirection in np.linspace(-y, y, cameraWidth):
 		for zDirection in np.linspace(z, -z, cameraHeight):
@@ -35,15 +36,18 @@ def getDirections(obj, camera, cameraWidth, cameraHeight, outputPath):
 
 			result, location, normal, index = obj.ray_cast(origin,  direction)
 
-			#xPixel = int(round(((yDirection + y) / (2 * y)) * cameraWidth))
-			#yPixel = int(round(((-zDirection + z) / (2 * z)) * cameraHeight))
-			xPixel = ((yDirection + y) / (2 * y)) * cameraWidth
-			yPixel = ((-zDirection + z) / (2 * z)) * cameraHeight
+			xPixel = int(round(((-yDirection + y) / (2 * y)) * cameraWidth))
+			yPixel = int(round(((-zDirection + z) / (2 * z)) * cameraHeight))
 			locationWorld = mw * location
 			fromCamera = locationWorld - camera.location
 
 			if result:
-				out.write(str(xPixel) + " " + str(yPixel) + " " + str(fromCamera.x) + '\n')
+				zReal = fromCamera.x # This gives the depth of the pixel under consideration
+				xReal = (xPixel-cameraWidth/2)*zReal/zPixel
+				yReal = (yPixel-cameraHeight/2)*zReal/zPixel
+				#out.write(str(xReal) + " " + str(yReal) + " " + str(zReal) + '\n')
+				out.write(str(xPixel) + " " + str(yPixel) + " " + str(zReal) + '\n')
+				#out.write(str(fromCamera.y) + " " + str(fromCamera.z) + " " + str(fromCamera.x) + '\n')
 	out.close()
 
 if __name__ == "__main__":
