@@ -246,8 +246,9 @@ void PSMImplementation::phaseUnwrap(int x, int y, float unwrapDist, float unwrap
 }
 
 void PSMImplementation::makeDepth() {
-	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
-
+	slInfrastructure *infrastructure = experiment->getInfrastructure();
+	Rect croppedArea = infrastructure->getCroppedArea();
+	double zScale = infrastructure->getScale();
 
 	for (int y = 0; y < croppedArea.height; y += PSM_RENDER_DETAIL) {
 		for (int x = 0; x < croppedArea.width; x += PSM_RENDER_DETAIL) {
@@ -256,7 +257,7 @@ void PSMImplementation::makeDepth() {
 			if (mask[arrayOffset] == 0) {
 				double xPos = getNumberColumns()/2 - phase[arrayOffset];
 				double displacement = getDisplacement(xPos,x);
-				double z = displacement * this->getScale();
+				double z = displacement * zScale;
 				slDepthExperimentResult result(x, y, z);
 				experiment->storeResult(&result);
 			}

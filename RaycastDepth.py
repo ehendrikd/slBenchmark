@@ -7,8 +7,6 @@ import numpy as np
 from mathutils import Vector
 
 def getDirection(camera):
-	#Y = np.tan(np.deg2rad(camera.angle_x / 2))
-	#Z = np.tan(np.deg2rad(camera.angle_y / 2))
 	Y = np.tan(bpy.data.cameras['Camera.001'].angle_x / 2)
 	Z = np.tan(bpy.data.cameras['Camera.001'].angle_y / 2)
 
@@ -22,8 +20,6 @@ def getDirections(obj, camera, cameraWidth, cameraHeight, outputPath):
 	for yDirection in np.linspace(-y, y, cameraWidth):
 		for zDirection in np.linspace(z, -z, cameraHeight):
 			dst = Vector((x, yDirection, zDirection)) + camera.location
-			direction = Vector((x, yDirection, zDirection)) 
-
 
 			mw = obj.matrix_world
 			mwi = mw.inverted()

@@ -68,8 +68,12 @@ int blenderInfrastructureExample() {
 //	slFileInfrastructure fileInfrastructure("existingCapturesGT_1920");
 //	slFileInfrastructure fileInfrastructure("Unity_captures_offset");
 //	slFileInfrastructure fileInfrastructure("blender_same_fov");
-	slFileInfrastructure fileInfrastructure("singleline_2_cubes");
-	
+//	slFileInfrastructure fileInfrastructure("singleline_2_cubes");
+	slFileInfrastructure fileInfrastructure("singleline_45_deg");
+
+	fileInfrastructure.setCameraHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_FOV);	
+	fileInfrastructure.setProjectorHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_FOV);	
+	fileInfrastructure.setScale(280);
 
 //	blenderVirtualInfrastructure.setCameraResolution(Size(2048, 100)); 
 //	blenderVirtualInfrastructure.setCroppedArea(Rect(0, 0, 2048, 100)); 
@@ -94,8 +98,8 @@ int blenderInfrastructureExample() {
 //	slSpeedDepthExperiment experiment6(&fileInfrastructure, &deBruijnImplementation);
 //
 	slSpeedDepthExperiment experiment7(&blenderVirtualInfrastructure, &raycastImplementation);
-	slSpeedDepthExperiment experiment8(&blenderVirtualInfrastructure, &singleLineImplementation);
-//	slSpeedDepthExperiment experiment8(&fileInfrastructure, &singleLineImplementation);
+//	slSpeedDepthExperiment experiment8(&blenderVirtualInfrastructure, &singleLineImplementation);
+	slSpeedDepthExperiment experiment8(&fileInfrastructure, &singleLineImplementation);
 
 //	experiment1.run();
 //	experiment2.run();
@@ -104,7 +108,7 @@ int blenderInfrastructureExample() {
 //	experiment5.run();
 //	experiment6.run();
 	experiment7.run();
-//	experiment8.run();
+	experiment8.run();
 
 	slSpeedBenchmark speedBenchmark;
 
@@ -115,7 +119,7 @@ int blenderInfrastructureExample() {
 //	speedBenchmark.addExperiment(&experiment5);
 //	speedBenchmark.addExperiment(&experiment6);
 	speedBenchmark.addExperiment(&experiment7);
-//	speedBenchmark.addExperiment(&experiment8);
+	speedBenchmark.addExperiment(&experiment8);
 
 	speedBenchmark.compareExperiments();
 

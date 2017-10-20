@@ -29,6 +29,8 @@ if __name__ == "__main__":
 	outputPath = os.path.abspath(argv[2])
 	cameraWidth = int(argv[3])
 	cameraHeight = int(argv[4])
+	cameraHorizontalFOV = float(argv[5])
+	projectorHorizontalFOV = float(argv[6])
 
 	jsonData = json.loads(open(os.path.abspath("./slVirtualScene.json")).read())
 
@@ -40,7 +42,6 @@ if __name__ == "__main__":
 		location = getTuple(sceneObjectJson.get('location'))
 		rotation = getTuple(sceneObjectJson.get('rotation'), True)
 
-		print(rotation)
 		sceneObject = None
 
 		if objectType == "plane":
@@ -73,7 +74,7 @@ if __name__ == "__main__":
 	projector = projectorObject.data
 
 	projector.distance = getNumber(projectorObjectJson['focal_length'])
-	projector.spot_size = math.radians(getNumber(projectorObjectJson['projection_size']))
+	projector.spot_size = math.radians(projectorHorizontalFOV)
 	projector.use_square = True
 	projector.show_cone = True
 	projector.energy = getNumber(projectorObjectJson['intensity'])
@@ -93,11 +94,12 @@ if __name__ == "__main__":
 	#    img = bpy.data.images.load(realpath)
 	#except:
 	#    raise NameError("Cannot load image %s" % realpath)
-    
+
 	cameraObjectJson = jsonData['camera']
 
 	bpy.ops.object.camera_add(location=getTuple(cameraObjectJson['location']), rotation=getTuple(cameraObjectJson['rotation'], True))
 	camera = bpy.context.object
+	camera.data.angle_x = math.radians(cameraHorizontalFOV)
 	#camera.data.type = 'ORTHO'
 	#camera.data.ortho_scale = 8.69
 	bpy.context.scene.camera = camera
@@ -105,8 +107,6 @@ if __name__ == "__main__":
 
 	bpy.context.scene.render.resolution_x = cameraWidth
 	bpy.context.scene.render.resolution_y = cameraHeight
-	#bpy.context.scene.render.resolution_x = 65536
-	#bpy.context.scene.render.resolution_y = 100
 	bpy.context.scene.render.resolution_percentage = 100
 
 	bpy.context.scene.render.filepath = capturePath

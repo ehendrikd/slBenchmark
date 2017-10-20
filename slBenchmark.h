@@ -35,14 +35,17 @@
 #include <opencv2/opencv.hpp>
 
 //Default camera resolution
-#define DEFAULT_CAMERA_WIDTH	1920
-#define DEFAULT_CAMERA_HEIGHT	1080
+#define DEFAULT_CAMERA_WIDTH		1920
+#define DEFAULT_CAMERA_HEIGHT		1080
+
+//Default camera/projector FOV
+#define DEFAULT_CAMERA_PROJECTOR_FOV	49.134
 
 //Default camera index
-#define DEFAULT_CAMERA_INDEX	0
+#define DEFAULT_CAMERA_INDEX		0
 
 //Default projection and capture wait (pause) time in milliseconds
-#define DEFAULT_WAIT_TIME	1000
+#define DEFAULT_WAIT_TIME		1000
 
 using namespace std;
 using namespace cv;
@@ -70,11 +73,8 @@ class slExperiment;
 //Abstract class that defines a structured light implementation
 class slImplementation {
 	public:
-		//Create a structured light implementation instance with an identifier (default scale)
+		//Create a structured light implementation instance with an identifier
 		slImplementation(string);
-
-		//Create a structured light implementation instance with an identifier, specifying a scale
-		slImplementation(string,double);
 
 		//Clean up
 		virtual ~slImplementation() {};
@@ -123,15 +123,9 @@ class slImplementation {
 		//A reference to the current experiment
 		slExperiment *experiment;
 
-               //Get the scale
-		double getScale();
-
 	protected:
 		//Set the identifier
 		void setIdentifier(string);
-
-		//Set the scale
-		void setScale(double);
 
 	private:
 		//Initailise this structured light implementation instance
@@ -139,11 +133,6 @@ class slImplementation {
 
 		//A string used to identify this implementation
 		string identifier;
-
-		//The scaling factor for the depth.
-		// This number is multiplied to the calculated depth to
-		// avoid skewed results.
-		double zscale;
 };
 
 //Abstract infrastruture (projector and camera) class used for the benchmarking
@@ -174,8 +163,26 @@ class slInfrastructure {
 		//Get the camera resolution
 		Size getCameraResolution();
 
+		//Get the horizontal camera FOV angle (degrees)
+		double getCameraHorizontalFOV();
+
+		//Set the horizontal camera FOV angle (degrees)
+		void setCameraHorizontalFOV(double);
+
+		//Get the horizontal projector FOV angle (degrees)
+		double getProjectorHorizontalFOV();
+
+		//Set the horizontal projector FOV angle (degrees)
+		void setProjectorHorizontalFOV(double);
+
 		//Get the cropped area
 		Rect getCroppedArea();
+
+                //Get the scale
+		double getScale();
+
+		//Set the scale
+		void setScale(double);
 
 		//A reference to the current experiment
 		slExperiment *experiment;
@@ -184,8 +191,17 @@ class slInfrastructure {
 		//The camera resolution
 		Size cameraResolution;
 
+		//The camera horizontal FOV (degrees)
+		double cameraHorizontalFOV;
+
+		//The projector horizontal FOV (degrees)
+		double projectorHorizontalFOV;
+
 		//The cropped area
 		Rect croppedArea;
+
+		//The scaling factor for the depth.
+		double zscale;
 
 	private:
 		//The name of this infrastructure

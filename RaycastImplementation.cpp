@@ -1,7 +1,6 @@
 #include "RaycastImplementation.h"
 
 RaycastImplementation::RaycastImplementation(): slImplementation(string("RaycastImplementation")) {
-	this->setScale(280);
 }
 
 bool RaycastImplementation::hasMoreIterations() {
@@ -26,8 +25,10 @@ void RaycastImplementation::postIterationsProcess() {
 	blenderFilename << experiment->getPath() << "slVirtualScene_0.blend";
 	outputFilename << experiment->getPath() << "raycast_depth.xyz";
 
-	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
-	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+	slInfrastructure *infrastructure = experiment->getInfrastructure();
+	Size cameraResolution = infrastructure->getCameraResolution();
+	Rect croppedArea = infrastructure->getCroppedArea();
+	double zScale = infrastructure->getScale();
 
 	blenderCommandLine
 		<< "blender -b -P RaycastDepth.py -- "
@@ -54,8 +55,7 @@ void RaycastImplementation::postIterationsProcess() {
 		double z = atof(results[2].c_str());
 
 		if (x >= croppedArea.x && x < (croppedArea.x + croppedArea.width) && y >= croppedArea.y && y < (croppedArea.y + croppedArea.height)) {
-			//slDepthExperimentResult result(x - croppedArea.x, y - croppedArea.y, z * this->getScale());
-			slDepthExperimentResult result(x, y, (z * this->getScale()) + 2660);
+			slDepthExperimentResult result(x - croppedArea.x, y - croppedArea.y, z * zScale);
 			experiment->storeResult(&result);
 		}
 	}

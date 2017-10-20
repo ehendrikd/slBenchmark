@@ -42,12 +42,8 @@ int makeDir(const char* name) {
  * slImplementation
  */ 
 
-//Create a structured light implementation with default scale
-slImplementation::slImplementation(string newIdentifier): identifier(newIdentifier), experiment(NULL), zscale(1) {
-}
-
-//Create a structured light implementation instance with an identifier
-slImplementation::slImplementation(string newIdentifier,double scale): identifier(newIdentifier), experiment(NULL), zscale(scale) {
+//Create a structured light implementation
+slImplementation::slImplementation(string newIdentifier): identifier(newIdentifier), experiment(NULL) {
 }
 
 //Set the identifier
@@ -73,8 +69,10 @@ double slImplementation::getDisplacement(double x_pattern, double x_image) {
     // should be correct, but not to scale.
     double xc = x_image/getCaptureWidth();
     double xp = x_pattern/getPatternWidth();
-    double gammac,gammap;// depths of view in radians.
-    gammac = gammap = 49.134 * M_PI/180;  // TODO: build into the parameters of the class.
+    double piOn180 = M_PI/180;
+    slInfrastructure *infrastructure = experiment->getInfrastructure();
+    double gammac = infrastructure->getCameraHorizontalFOV() * piOn180; // depth of camera view in radians.
+    double gammap = infrastructure->getProjectorHorizontalFOV() * piOn180; // depths of projector view in radians.
     double tgc = tan(gammac/2), tgp = tan(gammap/2);
     double Delta = 1; // Distance between camera and projector
 
@@ -84,16 +82,6 @@ double slImplementation::getDisplacement(double x_pattern, double x_image) {
 //Get the identifier
 string slImplementation::getIdentifier() {
 	return identifier;
-}
-
-//Set the scale
-void slImplementation::setScale(double s) {
-	this->zscale = s;
-}
-
-//Get the scale
-double slImplementation::getScale() {
-	return zscale;
 }
 
 //Check if there are any more pattern generation and capture iterations
@@ -110,6 +98,7 @@ void slImplementation::postIterationsProcess() {
 //Iterate through the captures to solve the correseponce problem
 void slImplementation::iterateCorrespondences() {
 	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
+	double zScale = experiment->getInfrastructure()->getScale();
 
 	for (int y = 0; y < cameraResolution.height; y++) {
 		for (int x = 0; x < cameraResolution.width; x++) {
@@ -117,7 +106,7 @@ void slImplementation::iterateCorrespondences() {
 
 			if (!isnan(xSolved) && xSolved != -1) {				
 				double displacement = getDisplacement(xSolved, x);
-				slDepthExperimentResult result(x, y, displacement * this->getScale());
+				slDepthExperimentResult result(x, y, displacement * zScale);
 				experiment->storeResult(&result);
 			}
 		}
@@ -129,7 +118,7 @@ void slImplementation::iterateCorrespondences() {
  */ 
 
 //Create an infrastructure instance with a name, camera resolution and cropped area
-slInfrastructure::slInfrastructure(string newName, Size newCameraResolution, Rect newCroppedArea): name(newName), cameraResolution(newCameraResolution), croppedArea(newCroppedArea), experiment(NULL) {
+slInfrastructure::slInfrastructure(string newName, Size newCameraResolution, Rect newCroppedArea): name(newName), cameraResolution(newCameraResolution), cameraHorizontalFOV(0), projectorHorizontalFOV(0), croppedArea(newCroppedArea), zscale(1), experiment(NULL) {
 }
 
 //The name of this infrastructure
@@ -152,9 +141,39 @@ Size slInfrastructure::getCameraResolution() {
 	return cameraResolution;
 }
 
+//Get the camera horizontal FOV angle (degrees)
+double slInfrastructure::getCameraHorizontalFOV() {
+	return cameraHorizontalFOV;
+}
+
+//Set the camera horizontal FOV angle (degrees)
+void slInfrastructure::setCameraHorizontalFOV(double newCameraHorizontalFOV) {
+	cameraHorizontalFOV = newCameraHorizontalFOV;
+}
+
+//Get the projector horizontal FOV angle (degrees)
+double slInfrastructure::getProjectorHorizontalFOV() {
+	return projectorHorizontalFOV;
+}
+
+//Set the projector horizontal FOV angle (degrees)
+void slInfrastructure::setProjectorHorizontalFOV(double newProjectorHorizontalFOV) {
+	projectorHorizontalFOV = newProjectorHorizontalFOV;
+}
+
 //Get the cropped area
 Rect slInfrastructure::getCroppedArea() {
 	return croppedArea;
+}
+
+//Set the scale
+void slInfrastructure::setScale(double s) {
+	zscale = s;
+}
+
+//Get the scale
+double slInfrastructure::getScale() {
+	return zscale;
 }
 
 /*
@@ -163,6 +182,9 @@ Rect slInfrastructure::getCroppedArea() {
 
 //Create a blender virtual infrastructure instance
 slBlenderVirtualInfrastructure::slBlenderVirtualInfrastructure() : slInfrastructure(string("slBlenderVirtualInfrastructure")) {
+	setScale(280);
+	setCameraHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_FOV);
+	setProjectorHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_FOV);
 }
 
 //Project the structured light implementation pattern and capture it
@@ -183,7 +205,9 @@ Mat slBlenderVirtualInfrastructure::projectAndCapture(Mat patternMat) {
 			<< captureFilename.str() << " " 
 			<< outputFilename.str() << " "
 			<< (int)cameraResolution.width << " " 
-			<< (int)cameraResolution.height;
+			<< (int)cameraResolution.height << " "
+			<< getCameraHorizontalFOV() << " "
+			<< getProjectorHorizontalFOV();
 			
 	DB("blenderCommandLine: " << blenderCommandLine.str())
 

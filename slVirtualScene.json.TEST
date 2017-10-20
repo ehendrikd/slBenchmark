@@ -13,7 +13,6 @@
 		"rotation":		[0, 90, 0],
 		"rotation_euler":	[90, 0, 0],
 		"focal_length":		10.44,
-		"projection_size":	49.134,
 		"intensity":		15
 	},
 	"camera":

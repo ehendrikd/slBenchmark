@@ -89,6 +89,7 @@ void DeBruijnImplementation::postIterationsProcess() {
 	slInfrastructure *infrastructure = experiment->getInfrastructure();
 	Rect croppedArea = infrastructure->getCroppedArea();
 	Mat captureMat = experiment->getLastCapture();
+	double zScale = infrastructure->getScale();
 
 	float columnWidth = (float)infrastructure->getCameraResolution().width / (float)getNumberColumns();
 
@@ -165,7 +166,7 @@ void DeBruijnImplementation::postIterationsProcess() {
 			
 			double displacement = getDisplacement(xPos,x);
 
-			slDepthExperimentResult result(x, y, displacement * this->getScale());
+			slDepthExperimentResult result(x, y, displacement * zScale);
 			experiment->storeResult(&result);
     		}
 
