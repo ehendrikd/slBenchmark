@@ -33,10 +33,10 @@ unsigned int DeBruijnImplementation::getNumberEdges() {
 }
 
 Mat DeBruijnImplementation::generatePattern() {
-	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
+	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
 
-	int screenWidth = (int)cameraResolution.width;
-	int screenHeight = (int)cameraResolution.height;
+	int screenWidth = (int)projectorResolution.width;
+	int screenHeight = (int)projectorResolution.height;
 
 	float columnWidth = (float)screenWidth / getNumberColumns();
 
@@ -87,27 +87,26 @@ Mat DeBruijnImplementation::generatePattern() {
 
 void DeBruijnImplementation::postIterationsProcess() {
 	slInfrastructure *infrastructure = experiment->getInfrastructure();
-	Rect croppedArea = infrastructure->getCroppedArea();
+	Size cameraResolution = infrastructure->getCameraResolution();
 	Mat captureMat = experiment->getLastCapture();
-	double zScale = infrastructure->getScale();
 
-	float columnWidth = (float)infrastructure->getCameraResolution().width / (float)getNumberColumns();
+	float columnWidth = (float)cameraResolution.width / (float)getNumberColumns();
 
-	for (int y = 0; y < croppedArea.height; y++) {
+	for (int y = 0; y < cameraResolution.height; y++) {
 		int prevR = 0;
 		int prevG = 0;
 		int prevB = 0;
 		Vec3s prevCapturelBGR(0,0,0);
 
-		int rgbWidth = croppedArea.width * 3;
+		int rgbWidth = cameraResolution.width * 3;
 
-		int gradients[croppedArea.width];
-		int correspondence[croppedArea.width];
+		int gradients[cameraResolution.width];
+		int correspondence[cameraResolution.width];
 		/*int differences[rgbWidth];*/
 		Vec3s *differences = new Vec3s[rgbWidth];
 		Vec3s *edges = new Vec3s[rgbWidth];
 
-		for (int x = 0; x < croppedArea.width; x++) {
+		for (int x = 0; x < cameraResolution.width; x++) {
 			Vec3s capturelBGR = captureMat.at<Vec3b>(y, x); /* Stored in signed ints to be able to take the difference */
 			
 			differences[x] = capturelBGR - prevCapturelBGR;
@@ -117,7 +116,7 @@ void DeBruijnImplementation::postIterationsProcess() {
 
 		int edgeIndex = 0;
 
-		for (int x = 1;x < (croppedArea.width - 1); x++) {
+		for (int x = 1;x < (cameraResolution.width - 1); x++) {
 			if (
 				(gradients[x - 1] + DEBRUIJN_THRESHOLD) < gradients[x] && 
 				(gradients[x + 1] + DEBRUIJN_THRESHOLD) < gradients[x]
@@ -164,9 +163,9 @@ void DeBruijnImplementation::postIterationsProcess() {
 
 			int xPos = (correspondences[i][1] + 1);
 			
-			double displacement = getDisplacement(xPos,x);
+			double displacement = getDisplacement(xPos, x);
 
-			slDepthExperimentResult result(x, y, displacement * zScale);
+			slDepthExperimentResult result(x, y, displacement);
 			experiment->storeResult(&result);
     		}
 

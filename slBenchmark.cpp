@@ -56,7 +56,7 @@ double slImplementation::getPatternWidth() {
 }
 
 double slImplementation::getCaptureWidth() {
-	return experiment->getInfrastructure()->getCroppedArea().width;
+	return experiment->getInfrastructure()->getProjectorResolution().width;
 }
 
 double slImplementation::getDisplacement(double x_pattern, double x_image) {
@@ -97,16 +97,16 @@ void slImplementation::postIterationsProcess() {
 
 //Iterate through the captures to solve the correseponce problem
 void slImplementation::iterateCorrespondences() {
-	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
-	double zScale = experiment->getInfrastructure()->getScale();
+	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
 
-	for (int y = 0; y < cameraResolution.height; y++) {
-		for (int x = 0; x < cameraResolution.width; x++) {
-			double xSolved = solveCorrespondence(x,y);
+	for (int y = 0; y < projectorResolution.height; y++) {
+		for (int xProjector = 0; xProjector < projectorResolution.width; xProjector++) {
+			double xCamera = solveCorrespondence(xProjector,y);
 
-			if (!isnan(xSolved) && xSolved != -1) {				
-				double displacement = getDisplacement(xSolved, x);
-				slDepthExperimentResult result(x, y, displacement * zScale);
+			if (!isnan(xCamera) && xCamera != -1) {				
+				double displacement = getDisplacement( xProjector,xCamera);
+				slDepthExperimentResult result(xProjector, y, displacement);
+				//slDepthExperimentResult result(x, y, xSolved);
 				experiment->storeResult(&result);
 			}
 		}
@@ -118,7 +118,7 @@ void slImplementation::iterateCorrespondences() {
  */ 
 
 //Create an infrastructure instance with a name, camera resolution and cropped area
-slInfrastructure::slInfrastructure(string newName, Size newCameraResolution, Rect newCroppedArea): name(newName), cameraResolution(newCameraResolution), cameraHorizontalFOV(0), projectorHorizontalFOV(0), croppedArea(newCroppedArea), zscale(1), experiment(NULL) {
+slInfrastructure::slInfrastructure(string newName, Size newCameraResolution, Size newProjectorResolution): name(newName), cameraResolution(newCameraResolution), projectorResolution(newProjectorResolution), cameraHorizontalFOV(0), projectorHorizontalFOV(0), experiment(NULL) {
 }
 
 //The name of this infrastructure
@@ -126,19 +126,24 @@ string slInfrastructure::getName() {
 	return name;
 }
 
+//Get the camera resolution
+Size slInfrastructure::getCameraResolution() {
+	return cameraResolution;
+}
+
 //Set the camera resolution
 void slInfrastructure::setCameraResolution(Size newCameraResolution) {
 	cameraResolution = newCameraResolution;
 }
 
-//Set the cropped area
-void slInfrastructure::setCroppedArea(Rect newCroppedArea) {
-	croppedArea = newCroppedArea;
+//Get the projector resolution
+Size slInfrastructure::getProjectorResolution() {
+	return projectorResolution;
 }
 
-//Get the camera resolution
-Size slInfrastructure::getCameraResolution() {
-	return cameraResolution;
+//Set the projector resolution
+void slInfrastructure::setProjectorResolution(Size newProjectorResolution) {
+	projectorResolution = newProjectorResolution;
 }
 
 //Get the camera horizontal FOV angle (degrees)
@@ -161,28 +166,12 @@ void slInfrastructure::setProjectorHorizontalFOV(double newProjectorHorizontalFO
 	projectorHorizontalFOV = newProjectorHorizontalFOV;
 }
 
-//Get the cropped area
-Rect slInfrastructure::getCroppedArea() {
-	return croppedArea;
-}
-
-//Set the scale
-void slInfrastructure::setScale(double s) {
-	zscale = s;
-}
-
-//Get the scale
-double slInfrastructure::getScale() {
-	return zscale;
-}
-
 /*
  * slBlenderVirtualInfrastructure
  */ 
 
 //Create a blender virtual infrastructure instance
 slBlenderVirtualInfrastructure::slBlenderVirtualInfrastructure() : slInfrastructure(string("slBlenderVirtualInfrastructure")) {
-	setScale(280);
 	setCameraHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_FOV);
 	setProjectorHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_FOV);
 }
@@ -234,8 +223,7 @@ Mat slBlenderVirtualInfrastructure::projectAndCapture(Mat patternMat) {
 
 //Create a physical infrastructure instance
 slPhysicalInfrastructure::slPhysicalInfrastructure(Size newProjectorResolution, Size newCameraResolution, int newCameraIndex, int newWaitTime): 
-	slInfrastructure(string("slPhysicalInfrastructure"), newCameraResolution), 
-	projectorResolution(newProjectorResolution),
+	slInfrastructure(string("slPhysicalInfrastructure"), newCameraResolution, newProjectorResolution), 
 	cameraIndex(newCameraIndex),
 	waitTime(newWaitTime) {
 }
@@ -401,7 +389,7 @@ void slExperiment::run() {
 		DB("infrastructure->projectAndCapture() complete.")
 
 		//Store the capture for processing
-		storeCapture(captureMat(infrastructure->getCroppedArea()));
+		storeCapture(captureMat);
 		//storeCapture(captureMat);
 		DB("after")
 

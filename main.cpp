@@ -23,10 +23,6 @@ int fileInfrastructureExample() {
 	slFileInfrastructure fileInfrastructureBinary("SampleFiles/Binary/captures");
 	slFileInfrastructure fileInfrastructureGray("SampleFiles/GrayCode/captures");
 	slFileInfrastructure fileInfrastructureDeBruijn("SampleFiles/DeBruijn/captures");
-	fileInfrastructurePhaseShift.setCroppedArea(Rect(619, 0, 1118, 1080)); 
-	fileInfrastructureBinary.setCroppedArea(Rect(619, 0, 1118, 1080)); 
-	fileInfrastructureGray.setCroppedArea(Rect(619, 0, 1118, 1080)); 
-	fileInfrastructureDeBruijn.setCroppedArea(Rect(619, 0, 1118, 1080)); 
 
 	/* Implementations */
 	BinaryImplementation binaryImplementation;
@@ -69,16 +65,19 @@ int blenderInfrastructureExample() {
 //	slFileInfrastructure fileInfrastructure("Unity_captures_offset");
 //	slFileInfrastructure fileInfrastructure("blender_same_fov");
 //	slFileInfrastructure fileInfrastructure("singleline_2_cubes");
-	slFileInfrastructure fileInfrastructure("singleline_45_deg");
-
-	fileInfrastructure.setCameraHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_FOV);	
-	fileInfrastructure.setProjectorHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_FOV);	
-	fileInfrastructure.setScale(280);
+//	slFileInfrastructure fileInfrastructure("singleline_45_deg");
+//	slFileInfrastructure fileInfrastructure("default_fov_45");
+	slFileInfrastructure fileInfrastructure("30_60_fov_45");
+	
+//	fileInfrastructure.setCameraHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_FOV);	
+//	fileInfrastructure.setProjectorHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_FOV);	
+	fileInfrastructure.setCameraHorizontalFOV(30);	
+	fileInfrastructure.setProjectorHorizontalFOV(60);	
+	
+	blenderVirtualInfrastructure.setCameraHorizontalFOV(30); 
+	blenderVirtualInfrastructure.setProjectorHorizontalFOV(30); 
 
 //	blenderVirtualInfrastructure.setCameraResolution(Size(2048, 100)); 
-//	blenderVirtualInfrastructure.setCroppedArea(Rect(0, 0, 2048, 100)); 
-//	blenderVirtualInfrastructure.setCroppedArea(Rect(619, 0, 1118, 1080)); 
-//	fileInfrastructure.setCroppedArea(Rect(619, 0, 1118, 1080)); 
 
 //	BinaryImplementation binaryImplementation;
 //	GrayCodedBinaryImplementation grayCodedBinaryImplementation;

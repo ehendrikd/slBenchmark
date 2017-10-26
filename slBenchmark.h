@@ -35,8 +35,8 @@
 #include <opencv2/opencv.hpp>
 
 //Default camera resolution
-#define DEFAULT_CAMERA_WIDTH		1920
-#define DEFAULT_CAMERA_HEIGHT		1080
+#define DEFAULT_CAMERA_PROJECTOR_WIDTH	1920
+#define DEFAULT_CAMERA_PROJECTOR_HEIGHT	1080
 
 //Default camera/projector FOV
 #define DEFAULT_CAMERA_PROJECTOR_FOV	49.134
@@ -85,11 +85,10 @@ class slImplementation {
 		//Initialise after an experiment has run
 		virtual void postExperimentRun() {};
 
-		// Get the width of the pattern and of the capture image.
-		// Typically this will be the image x-resultion, but this
-		// allows for the image to be cropped, and to take into account
-		// patterns with columns.
+		//Get the width of the pattern
                 virtual double getPatternWidth();
+
+		//Get the width of the capture
                 virtual double getCaptureWidth();
 
 		//Compute the depth from a pair of x coordinates from the projection pattern and the image
@@ -141,18 +140,12 @@ class slInfrastructure {
 		//Create an infrastructure instance with a benchmark and a name
 		slInfrastructure(
 			string,
-			Size newCameraResolution = Size(DEFAULT_CAMERA_WIDTH, DEFAULT_CAMERA_HEIGHT),
-			Rect newCroppedArea = Rect(0, 0, DEFAULT_CAMERA_WIDTH, DEFAULT_CAMERA_HEIGHT)
+			Size newCameraResolution = Size(DEFAULT_CAMERA_PROJECTOR_WIDTH, DEFAULT_CAMERA_PROJECTOR_HEIGHT),
+			Size newProjectorResolution = Size(DEFAULT_CAMERA_PROJECTOR_WIDTH, DEFAULT_CAMERA_PROJECTOR_HEIGHT)
 		);
 
 		//Clean up
 		virtual ~slInfrastructure() {};
-
-		//Set the camera resolution
-		void setCameraResolution(Size);
-
-		//Set the cropped area
-		void setCroppedArea(Rect);
 
 		//Project the structured light implementation pattern and capture it
 		virtual Mat projectAndCapture(Mat) = 0;
@@ -162,6 +155,15 @@ class slInfrastructure {
 
 		//Get the camera resolution
 		Size getCameraResolution();
+
+		//Set the camera resolution
+		void setCameraResolution(Size);
+
+		//Get the projector resolution
+		Size getProjectorResolution();
+
+		//Set the projector resolution
+		void setProjectorResolution(Size);
 
 		//Get the horizontal camera FOV angle (degrees)
 		double getCameraHorizontalFOV();
@@ -175,15 +177,6 @@ class slInfrastructure {
 		//Set the horizontal projector FOV angle (degrees)
 		void setProjectorHorizontalFOV(double);
 
-		//Get the cropped area
-		Rect getCroppedArea();
-
-                //Get the scale
-		double getScale();
-
-		//Set the scale
-		void setScale(double);
-
 		//A reference to the current experiment
 		slExperiment *experiment;
 
@@ -191,17 +184,14 @@ class slInfrastructure {
 		//The camera resolution
 		Size cameraResolution;
 
+		//The projector resolution
+		Size projectorResolution;
+
 		//The camera horizontal FOV (degrees)
 		double cameraHorizontalFOV;
 
 		//The projector horizontal FOV (degrees)
 		double projectorHorizontalFOV;
-
-		//The cropped area
-		Rect croppedArea;
-
-		//The scaling factor for the depth.
-		double zscale;
 
 	private:
 		//The name of this infrastructure
@@ -224,8 +214,8 @@ class slPhysicalInfrastructure : public slInfrastructure {
 	public:
 		//Create a physical infrastruture instance
 		slPhysicalInfrastructure(
-			Size newProjectorResolution = Size(DEFAULT_CAMERA_WIDTH, DEFAULT_CAMERA_HEIGHT),
-			Size newCameraResolution = Size(DEFAULT_CAMERA_WIDTH, DEFAULT_CAMERA_HEIGHT),
+			Size newProjectorResolution = Size(DEFAULT_CAMERA_PROJECTOR_WIDTH, DEFAULT_CAMERA_PROJECTOR_HEIGHT),
+			Size newCameraResolution = Size(DEFAULT_CAMERA_PROJECTOR_WIDTH, DEFAULT_CAMERA_PROJECTOR_HEIGHT),
 			int newCameraIndex = DEFAULT_CAMERA_INDEX,			
 			int newWaitTime = DEFAULT_WAIT_TIME
 		);
@@ -234,9 +224,6 @@ class slPhysicalInfrastructure : public slInfrastructure {
 		Mat projectAndCapture(Mat);
 
 	private:
-		//The projector resolution
-		Size projectorResolution;
-
 		//The camera index to use
 		int cameraIndex;
 

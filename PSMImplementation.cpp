@@ -8,9 +8,9 @@ PSMImplementation::PSMImplementation(unsigned int nCol): slImplementation(string
 void PSMImplementation::preExperimentRun() {
 	pixelsToProcess = new priority_queue<WrappedPixel, vector<WrappedPixel>, CompareWrappedPixel>();
 
-	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 
-	int arraySize = croppedArea.width * croppedArea.height;
+	int arraySize = cameraResolution.width * cameraResolution.height;
 
 	phase = new float[arraySize];
 	dist = new float[arraySize];
@@ -44,12 +44,12 @@ double PSMImplementation::getPatternWidth() {
 }
 
 Mat PSMImplementation::generatePattern() {
-	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
+	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
 
 	int iterationIndex = experiment->getIterationIndex();
 
-	int screenWidth = (int)cameraResolution.width;
-	int screenHeight = (int)cameraResolution.height;
+	int screenWidth = (int)projectorResolution.width;
+	int screenHeight = (int)projectorResolution.height;
 
 	int columnWidth = screenWidth / getNumberColumns();
 
@@ -116,7 +116,7 @@ float PSMImplementation::averageBrightness(int r, int g, int b) {
  * that is its place within the column.
  */
 void PSMImplementation::phaseWrap() {
-	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 
 	float sqrt3 = sqrt(3);
 
@@ -124,8 +124,8 @@ void PSMImplementation::phaseWrap() {
 	Mat phase2Mat = experiment->getCaptureAt(1);
 	Mat phase3Mat = experiment->getCaptureAt(2);
 	
-	for (int y = 0; y < croppedArea.height; y++) {
-		for (int x = 0; x < croppedArea.width; x++) {
+	for (int y = 0; y < cameraResolution.height; y++) {
+		for (int x = 0; x < cameraResolution.width; x++) {
 			/* Start by getting the intensity of the image at the point for each image*/
 			Vec3b phase1PixelBGR = phase1Mat.at<Vec3b>(y, x);
 			Vec3b phase2PixelBGR = phase2Mat.at<Vec3b>(y, x);
@@ -138,7 +138,7 @@ void PSMImplementation::phaseWrap() {
 			/* Maximum intensity minus minimum intensity */
 			float phaseRange = max(phase1, phase2, phase3) - min(phase1, phase2, phase3);
 
-			int arrayOffset = (y * croppedArea.width) + x;
+			int arrayOffset = (y * cameraResolution.width) + x;
 
 			if (phaseRange <= PSM_NOISE_THRESHOLD) {
 				mask[arrayOffset] = 1;
@@ -154,16 +154,16 @@ void PSMImplementation::phaseWrap() {
 		}
 	}
 
-	for (int y = 1; y < croppedArea.height - 1; y++) {
-		for (int x = 1; x < croppedArea.width - 1; x++) {
-			int arrayOffset = (y * croppedArea.width) + x;
+	for (int y = 1; y < cameraResolution.height - 1; y++) {
+		for (int x = 1; x < cameraResolution.width - 1; x++) {
+			int arrayOffset = (y * cameraResolution.width) + x;
 
 			if (mask[arrayOffset] == 0) {
 				dist[arrayOffset] = (
 					diff(phase[arrayOffset], phase[arrayOffset - 1]) +
 					diff(phase[arrayOffset], phase[arrayOffset + 1]) +
-					diff(phase[arrayOffset], phase[((y - 1) * croppedArea.width) + x]) +
-					diff(phase[arrayOffset], phase[((y + 1) * croppedArea.width) + x])
+					diff(phase[arrayOffset], phase[((y - 1) * cameraResolution.width) + x]) +
+					diff(phase[arrayOffset], phase[((y + 1) * cameraResolution.width) + x])
 				) / dist[arrayOffset];
 			}
 		}
@@ -176,17 +176,17 @@ void PSMImplementation::phaseWrap() {
  * it lies in
  */
 void PSMImplementation::phaseUnwrap() {
-	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 
-	int startX = croppedArea.width / 2;
-	int startY = croppedArea.height / 2;
+	int startX = cameraResolution.width / 2;
+	int startY = cameraResolution.height / 2;
 
 	struct WrappedPixel firstWrappedPixel;
 
 	firstWrappedPixel.x = startX;
 	firstWrappedPixel.y = startY;
 	firstWrappedPixel.dist = 0;
-	firstWrappedPixel.phase = phase[(startY * croppedArea.width) + startX];
+	firstWrappedPixel.phase = phase[(startY * cameraResolution.width) + startX];
 
 	pixelsToProcess->push(firstWrappedPixel);
 
@@ -197,7 +197,7 @@ void PSMImplementation::phaseUnwrap() {
 		int x = currentPixel.x;
 		int y = currentPixel.y;
 
-		int arrayOffset = (y * croppedArea.width) + x;
+		int arrayOffset = (y * cameraResolution.width) + x;
 
 		if (ready[arrayOffset] == 1) {
 			phase[arrayOffset] = currentPixel.phase;
@@ -206,13 +206,13 @@ void PSMImplementation::phaseUnwrap() {
 			if (y > 0) {
 				phaseUnwrap(x, y - 1, currentPixel.dist, currentPixel.phase);
 			}
-			if (y < croppedArea.height - 1) {
+			if (y < cameraResolution.height - 1) {
 				phaseUnwrap(x, y + 1, currentPixel.dist, currentPixel.phase);
 			}
 			if (x > 0) {
 				phaseUnwrap(x - 1, y, currentPixel.dist, currentPixel.phase);
 			}
-			if (x < croppedArea.width - 1) {
+			if (x < cameraResolution.width - 1) {
 				phaseUnwrap(x + 1, y, currentPixel.dist, currentPixel.phase);
 			}
 		}
@@ -220,9 +220,9 @@ void PSMImplementation::phaseUnwrap() {
 }
 
 void PSMImplementation::phaseUnwrap(int x, int y, float unwrapDist, float unwrapPhase) {
-	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 
-	int arrayOffset = (y * croppedArea.width) + x;
+	int arrayOffset = (y * cameraResolution.width) + x;
 
 	if (ready[arrayOffset] == 1) {
 		float diff = phase[arrayOffset] - (unwrapPhase - (int)unwrapPhase);
@@ -247,18 +247,16 @@ void PSMImplementation::phaseUnwrap(int x, int y, float unwrapDist, float unwrap
 
 void PSMImplementation::makeDepth() {
 	slInfrastructure *infrastructure = experiment->getInfrastructure();
-	Rect croppedArea = infrastructure->getCroppedArea();
-	double zScale = infrastructure->getScale();
+	Size cameraResolution = infrastructure->getCameraResolution();
 
-	for (int y = 0; y < croppedArea.height; y += PSM_RENDER_DETAIL) {
-		for (int x = 0; x < croppedArea.width; x += PSM_RENDER_DETAIL) {
-			int arrayOffset = (y * croppedArea.width) + x;
+	for (int y = 0; y < cameraResolution.height; y += PSM_RENDER_DETAIL) {
+		for (int x = 0; x < cameraResolution.width; x += PSM_RENDER_DETAIL) {
+			int arrayOffset = (y * cameraResolution.width) + x;
 
 			if (mask[arrayOffset] == 0) {
 				double xPos = getNumberColumns()/2 - phase[arrayOffset];
 				double displacement = getDisplacement(xPos,x);
-				double z = displacement * zScale;
-				slDepthExperimentResult result(x, y, z);
+				slDepthExperimentResult result(x, y, displacement);
 				experiment->storeResult(&result);
 			}
 		}

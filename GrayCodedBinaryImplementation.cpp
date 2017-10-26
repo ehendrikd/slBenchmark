@@ -7,20 +7,19 @@ GrayCodedBinaryImplementation::GrayCodedBinaryImplementation() {
 Mat GrayCodedBinaryImplementation::generatePattern() {
 	Mat pattern;
 	Scalar colour;
-	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
-	int cameraWidth = (int)cameraResolution.width;
-	int cameraHeight = (int)cameraResolution.height;
-
+	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
+	int projectorWidth = (int)projectorResolution.width;
+	int projectorHeight = (int)projectorResolution.height;
 
 	generateBackground(pattern,colour);
 
-	int columnWidth = cameraWidth / numberColumns;
+	int columnWidth = projectorWidth / numberColumns;
 	int doubleColumnWidth = columnWidth * 2;
 	int xPos = 0;
 
 	for (int columnIndex = 0; columnIndex < numberColumns; columnIndex++) {
 		if (columnIndex % 4 == 1) {
-			rectangle(pattern, Point(xPos, 0), Point((xPos + doubleColumnWidth) - 1, cameraHeight), colour, FILLED);
+			rectangle(pattern, Point(xPos, 0), Point((xPos + doubleColumnWidth) - 1, projectorHeight), colour, FILLED);
 		}
 		xPos += columnWidth;
 	}
@@ -30,8 +29,8 @@ Mat GrayCodedBinaryImplementation::generatePattern() {
 
 // Getters and Setters
 int GrayCodedBinaryImplementation::getBinaryCode(int x, int y) {
-    Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
-    int binCode = this->binaryCode[(y * croppedArea.width) + x];
+    Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
+    int binCode = this->binaryCode[(y * cameraResolution.width) + x];
     if(binCode == -1) return -1;
     return convertGrayCodeToInteger(binCode, numberColumns, getNumberPatterns());
 }

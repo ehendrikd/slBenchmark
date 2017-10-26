@@ -6,41 +6,47 @@ import json
 import numpy as np
 from mathutils import Vector
 
-def getDirection(camera):
+def getCameraDirection():
 	Y = np.tan(bpy.data.cameras['Camera.001'].angle_x / 2)
 	Z = np.tan(bpy.data.cameras['Camera.001'].angle_y / 2)
 
 	return (-1, Y, Z)
 
-def getDirections(obj, camera, cameraWidth, cameraHeight, outputPath):
-	out = open(outputPath, 'w')
-	x, y, z = getDirection(camera)
-	zPixel = cameraWidth/(2*y)  # This the depth of the picture.
+def getProjectorDirection():
+	Y = np.tan(bpy.data.lamps['Spot'].spot_size / 2)
 
-	for yDirection in np.linspace(-y, y, cameraWidth):
-		for zDirection in np.linspace(z, -z, cameraHeight):
-			dst = Vector((x, yDirection, zDirection)) + camera.location
+	return (-1, Y, Y)
+
+def getDirections(obj, source, sourceWidth, sourceHeight, outputPath):
+	out = open(outputPath, 'w')
+	#x, y, z = getDirection()
+	x, y, z = getProjectorDirection()
+	zPixel = sourceWidth/(2*y)  # This the depth of the picture.
+
+	for yDirection in np.linspace(-y, y, sourceWidth):
+		for zDirection in np.linspace(z, -z, sourceHeight):
+			dst = Vector((x, yDirection, zDirection)) + source.location
 
 			mw = obj.matrix_world
 			mwi = mw.inverted()
 
 			# src and dst in local space of cb
 
-			origin = mwi * camera.location
+			origin = mwi * source.location
 			dest = mwi * dst
 			direction = (dest - origin).normalized()
 
 			result, location, normal, index = obj.ray_cast(origin,  direction)
 
-			xPixel = int(round(((-yDirection + y) / (2 * y)) * cameraWidth))
-			yPixel = int(round(((-zDirection + z) / (2 * z)) * cameraHeight))
+			xPixel = int(round(((yDirection + y) / (2 * y)) * sourceWidth))
+			yPixel = int(round(((-zDirection + z) / (2 * z)) * sourceHeight))
 			locationWorld = mw * location
-			fromCamera = locationWorld - camera.location
+			fromSource = locationWorld - source.location
 
 			if result:
-				zReal = fromCamera.x # This gives the depth of the pixel under consideration
-				xReal = (xPixel-cameraWidth/2)*zReal/zPixel
-				yReal = (yPixel-cameraHeight/2)*zReal/zPixel
+				zReal = fromSource.x # This gives the depth of the pixel under consideration
+				xReal = (xPixel-sourceWidth/2)*zReal/zPixel
+				yReal = (yPixel-sourceHeight/2)*zReal/zPixel
 				#out.write(str(xReal) + " " + str(yReal) + " " + str(zReal) + '\n')
 				out.write(str(xPixel) + " " + str(yPixel) + " " + str(zReal) + '\n')
 				#out.write(str(fromCamera.y) + " " + str(fromCamera.z) + " " + str(fromCamera.x) + '\n')
@@ -53,8 +59,8 @@ if __name__ == "__main__":
 	bpy.ops.wm.open_mainfile(filepath=os.path.abspath(argv[0]))
 
 	outputPath = os.path.abspath(argv[1])
-	cameraWidth = int(argv[2])
-	cameraHeight = int(argv[3])
+	sourceWidth = int(argv[2])
+	sourceHeight = int(argv[3])
 
 	singleObject = None
 
@@ -72,6 +78,7 @@ if __name__ == "__main__":
 			singleObject = ob
 
 
-	getDirections(singleObject, bpy.context.scene.camera, cameraWidth, cameraHeight, outputPath)
+	#getDirections(singleObject, bpy.context.scene.camera, sourceWidth, sourceHeight, outputPath)
+	getDirections(singleObject, bpy.context.scene.objects['Spot'], sourceWidth, sourceHeight, outputPath)
 
 	

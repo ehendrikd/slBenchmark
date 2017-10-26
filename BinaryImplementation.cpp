@@ -11,9 +11,9 @@ BinaryImplementation::BinaryImplementation(): slImplementation(string("BinaryImp
 void BinaryImplementation::preExperimentRun() {
 	numberColumns = 1;
 
-	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 
-	int arraySize = croppedArea.width * croppedArea.height;
+	int arraySize = cameraResolution.width * cameraResolution.height;
 
 	binaryCode = new int[arraySize];
 
@@ -37,8 +37,8 @@ unsigned int BinaryImplementation::getNumberColumns() {
 }
 
 int BinaryImplementation::getBinaryCode(int x, int y) {
-    Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
-    return this->binaryCode[(y * croppedArea.width) + x];
+	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
+	return this->binaryCode[(y * cameraResolution.width) + x];
 }
 
 void BinaryImplementation::postExperimentRun() {
@@ -59,14 +59,15 @@ int BinaryImplementation::guessColour(int colourDifference) {
 }
 
 void BinaryImplementation::generateBackground(Mat &pattern, Scalar &colour) {
-	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
+	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
 
 	int iterationIndex = experiment->getIterationIndex();
 
-	int cameraWidth = (int)cameraResolution.width;
-	int cameraHeight = (int)cameraResolution.height;
+	int projectorWidth = (int)projectorResolution.width;
+	int projectorHeight = (int)projectorResolution.height;
 
-	pattern.create(cameraHeight, cameraWidth, CV_8UC3);
+	pattern.create(projectorHeight, projectorWidth, CV_8UC3);
+
 	if (iterationIndex % 2 == 0) {
 		numberColumns *= 2;
 		pattern.setTo(Scalar(White_Value, White_Value, White_Value));
@@ -81,30 +82,30 @@ Mat BinaryImplementation::generatePattern() {
 	Mat pattern;
 	Scalar colour;
 
-	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
-	int cameraWidth = (int)cameraResolution.width;
-	int cameraHeight = (int)cameraResolution.height;
+	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
+	int projectorWidth = (int)projectorResolution.width;
+	int projectorHeight = (int)projectorResolution.height;
 
 	generateBackground(pattern,colour);
 
-	int width = cameraWidth / numberColumns;
+	int width = projectorWidth / numberColumns;
 
-	for (int w = width; w < cameraWidth; w += (2 * width)) {
-		rectangle(pattern, Point(w, 0), Point((w + width) - 1, cameraHeight), colour, FILLED);
+	for (int w = width; w < projectorWidth; w += (2 * width)) {
+		rectangle(pattern, Point(w, 0), Point((w + width) - 1, projectorHeight), colour, FILLED);
 	}
 
 	return pattern;
 }
 
 void BinaryImplementation::iterationProcess() {
-	Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
+	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 
 	if (experiment->getIterationIndex() % 2 != 0) {
 		Mat positiveMat = experiment->getCaptureAt(experiment->getNumberCaptures() - 2);
 		Mat negativeMat = experiment->getLastCapture();
 
-		for (int y = 0; y < croppedArea.height; y++) {
-			for (int x = 0; x < croppedArea.width; x++) {
+		for (int y = 0; y < cameraResolution.height; y++) {
+			for (int x = 0; x < cameraResolution.width; x++) {
 				Vec3b positivePixelBGR = positiveMat.at<Vec3b>(y, x);
 				Vec3b negativePixelBGR = negativeMat.at<Vec3b>(y, x);
 
@@ -113,7 +114,7 @@ void BinaryImplementation::iterationProcess() {
 
 				int colourDifference = guessColour(positiveColourTotal - negativeColourTotal);
 
-				int arrayOffset = (y * croppedArea.width) + x;
+				int arrayOffset = (y * cameraResolution.width) + x;
 
 				binaryCode[arrayOffset] <<= 1;
 				if(colourDifference == -1) binaryCode[arrayOffset] = -1;
@@ -122,28 +123,7 @@ void BinaryImplementation::iterationProcess() {
 		}	
 	}
 }
-/*
-void BinaryImplementation::postIterationsProcess() {
-        Rect croppedArea = experiment->getInfrastructure()->getCroppedArea();
-	double width = experiment->getInfrastructure()->getCameraResolution().width/getNumberColumns();
-	for (int y = 0; y < croppedArea.height; y++) {
-		int lastBinaryCode = -1;
 
-		for (int x = 0; x < croppedArea.width; x++) {
-			int currentBinaryCode = getBinaryCode(x,y);
-
-			if (currentBinaryCode != -1 && currentBinaryCode != lastBinaryCode) {
-				
-				double displacement = getDisplacement((double)currentBinaryCode,x);
-				slDepthExperimentResult result(currentBinaryCode*width/2, y, displacement * this->getScale());
-				experiment->storeResult(&result);
-
-				lastBinaryCode = currentBinaryCode;
-			}
-		}
-	}
-}
-*/
 double BinaryImplementation::solveCorrespondence(int x, int y) {
 	static int lastBinaryCode = -1;
 
