@@ -74,8 +74,8 @@ int blenderInfrastructureExample() {
 	fileInfrastructure.setCameraHorizontalFOV(30);	
 	fileInfrastructure.setProjectorHorizontalFOV(60);	
 	
-	blenderVirtualInfrastructure.setCameraHorizontalFOV(30); 
-	blenderVirtualInfrastructure.setProjectorHorizontalFOV(30); 
+//	blenderVirtualInfrastructure.setCameraHorizontalFOV(30); 
+//	blenderVirtualInfrastructure.setProjectorHorizontalFOV(60); 
 
 //	blenderVirtualInfrastructure.setCameraResolution(Size(2048, 100)); 
 
