@@ -56,5 +56,5 @@ void RaycastImplementation::postIterationsProcess() {
 		experiment->storeResult(&result);
 	}
 
-	remove(outputFilename.str().c_str());
+	//remove(outputFilename.str().c_str());
 }

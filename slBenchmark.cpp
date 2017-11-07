@@ -67,8 +67,8 @@ double slImplementation::getDisplacement(double x_pattern, double x_image) {
     // * distance between the camera and the project.
     // Setting this will give an accurate depth. Otherwise, proportions 
     // should be correct, but not to scale.
-    double xc = x_image/getCaptureWidth();
-    double xp = x_pattern/getPatternWidth();
+    double xc = x_image/getCaptureWidth() - 0.5;
+    double xp = x_pattern/getPatternWidth() - 0.5;
     double piOn180 = M_PI/180;
     slInfrastructure *infrastructure = experiment->getInfrastructure();
     double gammac = infrastructure->getCameraHorizontalFOV() * piOn180; // depth of camera view in radians.
@@ -76,7 +76,7 @@ double slImplementation::getDisplacement(double x_pattern, double x_image) {
     double tgc = tan(gammac/2), tgp = tan(gammap/2);
     double Delta = 1; // Distance between camera and projector
 
-    return Delta / 2 / (tgc*xc - tgp*xp);
+    return Delta / 2 / (tgp*xp - tgc*xc);
 }
 
 //Get the identifier
@@ -118,7 +118,7 @@ void slImplementation::iterateCorrespondences() {
  */ 
 
 //Create an infrastructure instance with a name, camera resolution and cropped area
-slInfrastructure::slInfrastructure(string newName, Size newCameraResolution, Size newProjectorResolution): name(newName), cameraResolution(newCameraResolution), projectorResolution(newProjectorResolution), cameraHorizontalFOV(0), projectorHorizontalFOV(0), experiment(NULL) {
+slInfrastructure::slInfrastructure(string newName, Size newCameraResolution, Size newProjectorResolution): name(newName), cameraResolution(newCameraResolution), projectorResolution(newProjectorResolution), cameraHorizontalFOV(0), projectorHorizontalFOV(0), cameraVerticalFOV(0), projectorVerticalFOV(0), experiment(NULL) {
 }
 
 //The name of this infrastructure
@@ -156,6 +156,16 @@ void slInfrastructure::setCameraHorizontalFOV(double newCameraHorizontalFOV) {
 	cameraHorizontalFOV = newCameraHorizontalFOV;
 }
 
+//Get the camera vertical FOV angle (degrees)
+double slInfrastructure::getCameraVerticalFOV() {
+	return cameraVerticalFOV;
+}
+
+//Set the camera vertical FOV angle (degrees)
+void slInfrastructure::setCameraVerticalFOV(double newCameraVerticalFOV) {
+	cameraVerticalFOV = newCameraVerticalFOV;
+}
+
 //Get the projector horizontal FOV angle (degrees)
 double slInfrastructure::getProjectorHorizontalFOV() {
 	return projectorHorizontalFOV;
@@ -166,14 +176,26 @@ void slInfrastructure::setProjectorHorizontalFOV(double newProjectorHorizontalFO
 	projectorHorizontalFOV = newProjectorHorizontalFOV;
 }
 
+//Get the projector vertical FOV angle (degrees)
+double slInfrastructure::getProjectorVerticalFOV() {
+	return projectorVerticalFOV;
+}
+
+//Set the projector vertical FOV angle (degrees)
+void slInfrastructure::setProjectorVerticalFOV(double newProjectorVerticalFOV) {
+	projectorVerticalFOV = newProjectorVerticalFOV;
+}
+
 /*
  * slBlenderVirtualInfrastructure
  */ 
 
 //Create a blender virtual infrastructure instance
 slBlenderVirtualInfrastructure::slBlenderVirtualInfrastructure() : slInfrastructure(string("slBlenderVirtualInfrastructure")) {
-	setCameraHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_FOV);
-	setProjectorHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_FOV);
+	setCameraHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV);
+	setCameraVerticalFOV(DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV);
+	setProjectorHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV);
+	setProjectorVerticalFOV(DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV);
 }
 
 //Project the structured light implementation pattern and capture it
@@ -539,25 +561,14 @@ void slDepthExperiment::storeResult(slExperimentResult *experimentResult) {
 	depthData[arrayOffset] = depthExperimentResult->z;
 }
 
-//Run after the implementation processes after all the iterations
-void slDepthExperiment::runPostImplementationPostIterationsProcess() {
-	stringstream pointCloudFileStream;
+//Check if depth data value has been set
+bool slDepthExperiment::isDepthDataValued(int index) {
+	return depthDataValued[index];
+}
 
-	pointCloudFileStream << getPath() << "point_cloud_final.xyz";
-
-	ofstream outputFileStream(pointCloudFileStream.str().c_str());
-
-	for (int y = 0; y < infrastructure->getCameraResolution().height; y++) {
-		for (int x = 0; x < infrastructure->getCameraResolution().width; x++) {
-			int arrayOffset = (y * infrastructure->getCameraResolution().width) + x;
-
-			if (depthDataValued[arrayOffset]) {
-				outputFileStream << x << " " << y << " " << depthData[arrayOffset] << endl;
-			}
-		}	
-	}
-
-	outputFileStream.close();
+//Get depth data value
+double slDepthExperiment::getDepthData(int index) {
+	return depthData[index];
 }
 
 /*
@@ -674,3 +685,49 @@ void slSpeedBenchmark::compareExperiments() {
 	}
 }
 
+/*
+ * sl3DReconstructor
+ */ 
+
+//Write a XYZ point cloud for the given depth experiment
+void sl3DReconstructor::writeXYZPointCloud(slDepthExperiment *depthExperiment) {
+	stringstream pointCloudFileStream;
+
+	pointCloudFileStream << depthExperiment->getPath() << "point_cloud.xyz";
+	ofstream outputFileStream(pointCloudFileStream.str().c_str());
+
+	slInfrastructure *infrastructure = depthExperiment->getInfrastructure();
+
+	int numPatternColumns = infrastructure->getProjectorResolution().width;
+	int cameraHeight = infrastructure->getCameraResolution().height;
+
+	double halfNumPatternColumns = (double)numPatternColumns / 2.0;
+	double halfCameraHeight = (double)cameraHeight / 2.0;
+
+	double piOn180 = M_PI/180;
+
+	double halfProjectorHorizontalFOVRadians = tan(piOn180 * (infrastructure->getProjectorHorizontalFOV() / 2.0));
+	double halfCameraVerticalFOVRadians = tan(piOn180 * (infrastructure->getCameraVerticalFOV() / 2.0));
+
+	for (int x = 0; x < numPatternColumns; x++) {
+		for (int y = 0; y < cameraHeight; y++) {
+			int arrayOffset = (y * numPatternColumns) + x;
+
+			if (depthExperiment->isDepthDataValued(arrayOffset)) {
+				double zCoord = depthExperiment->getDepthData(arrayOffset);
+				double xCoord = ((double)x - halfNumPatternColumns) * zCoord * (2.0 * halfProjectorHorizontalFOVRadians / numPatternColumns);
+				double yCoord = ((double)y - halfCameraHeight) * zCoord * (2.0 * halfCameraVerticalFOVRadians / cameraHeight);
+/*		
+				if (x == 900 && y == 312) {
+					DB("double xCoord[" << xCoord << "] = ((double)x[" << x << "] - halfNumPatternColumns[" << halfNumPatternColumns << "]) * zCoord[" << zCoord << "] * (2.0 * halfProjectorHorizontalFOVRadians[" << halfProjectorHorizontalFOVRadians << "] / numPatternColumns[" << numPatternColumns << ");")
+					DB("double yCoord[" << yCoord << "] = ((double)y[" << y << "] - halfCameraHeight[" << halfCameraHeight << "]) * zCoord[" << zCoord <<"] * (2.0 * halfCameraVerticalFOVRadians[" << halfCameraVerticalFOVRadians << "] / cameraHeight[" << cameraHeight << "]);")
+				}
+*/
+				outputFileStream << xCoord << " " << yCoord << " " << zCoord << endl;
+				//outputFileStream << "[x: " << x << " y: " << y << "] " << xCoord << " " << yCoord << " " << zCoord << endl;
+			}
+		}	
+	}
+
+	outputFileStream.close();
+}

@@ -3,15 +3,16 @@
 	[
 		{
 			"type":		"plane",
-			"rotation":	[45, 90, 0],
-			"scale":	[2, 2, 1],
-			"location":	[0, -1.5, 0]
+			"rotation":	[0, 90, 0],
+			"scale":	[5, 5, 1]
 		},
 		{
-			"type":		"plane",
-			"rotation":	[-45, 90, 0],
-			"scale":	[2, 2, 1],
-			"location":	[0, 1.5, 0]
+			"type":		"sphere",
+			"location":	[1, -1, 0]
+		},
+		{
+			"type":		"cube",
+			"location":	[1, 1, 0]
 		}
 	],
 	"projector":

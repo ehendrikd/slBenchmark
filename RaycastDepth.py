@@ -14,14 +14,17 @@ def getCameraDirection():
 
 def getProjectorDirection():
 	Y = np.tan(bpy.data.lamps['Spot'].spot_size / 2)
+	Z = np.tan(bpy.data.cameras['Camera.001'].angle_y / 2)
 
-	return (-1, Y, Y)
+	#return (-1, Y, Y)
+	return (-1, Y, Z)
 
 def getDirections(obj, source, sourceWidth, sourceHeight, outputPath):
 	out = open(outputPath, 'w')
+	outReal = open(outputPath + ".real.xyz", 'w')
 	#x, y, z = getDirection()
 	x, y, z = getProjectorDirection()
-	zPixel = sourceWidth/(2*y)  # This the depth of the picture.
+	#zPixel = sourceWidth/(2*y)  # This the depth of the picture.
 
 	for yDirection in np.linspace(-y, y, sourceWidth):
 		for zDirection in np.linspace(z, -z, sourceHeight):
@@ -45,9 +48,15 @@ def getDirections(obj, source, sourceWidth, sourceHeight, outputPath):
 
 			if result:
 				zReal = fromSource.x # This gives the depth of the pixel under consideration
-				xReal = (xPixel-sourceWidth/2)*zReal/zPixel
-				yReal = (yPixel-sourceHeight/2)*zReal/zPixel
-				#out.write(str(xReal) + " " + str(yReal) + " " + str(zReal) + '\n')
+				xReal = (xPixel-sourceWidth/2)*zReal*(2*y/sourceWidth)
+				yReal = (yPixel-sourceHeight/2)*zReal*(2*z/sourceHeight)
+
+#				if xPixel == 900 and yPixel == 312:
+#					print("xReal[" + str(xReal) + "] = (xPixel[" + str(xPixel) + "]-sourceWidth[" + str(sourceWidth) + "]/2)*zReal[" + str(zReal) + "]*(2*y[" + str(y) + "]/sourceWidth[" + str(sourceWidth) + "]")
+#					print("yReal[" + str(yReal) + "] = (yPixel[" + str(yPixel) + "]-sourceHeight[" + str(sourceHeight) + "]/2)*zReal[" + str(zReal) + "]*(2*z[" + str(z) + "]/sourceHeight[" + str(sourceHeight) + "]")
+				
+
+				outReal.write(str(xReal) + " " + str(yReal) + " " + str(zReal) + '\n')
 				out.write(str(xPixel) + " " + str(yPixel) + " " + str(zReal) + '\n')
 				#out.write(str(fromCamera.y) + " " + str(fromCamera.z) + " " + str(fromCamera.x) + '\n')
 	out.close()

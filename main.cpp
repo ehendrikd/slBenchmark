@@ -67,22 +67,31 @@ int blenderInfrastructureExample() {
 //	slFileInfrastructure fileInfrastructure("singleline_2_cubes");
 //	slFileInfrastructure fileInfrastructure("singleline_45_deg");
 //	slFileInfrastructure fileInfrastructure("default_fov_45");
-	slFileInfrastructure fileInfrastructure("30_60_fov_45");
+//	slFileInfrastructure fileInfrastructure("30_60_fov_45");
+	slFileInfrastructure fileInfrastructure("default_fov_cube_steps");
 	
-//	fileInfrastructure.setCameraHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_FOV);	
-//	fileInfrastructure.setProjectorHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_FOV);	
+	fileInfrastructure.setCameraHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV);	
+	fileInfrastructure.setCameraVerticalFOV(DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV);	
+	fileInfrastructure.setProjectorHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV);	
+	fileInfrastructure.setProjectorVerticalFOV(DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV);	
+/*	
 	fileInfrastructure.setCameraHorizontalFOV(30);	
+	fileInfrastructure.setCameraVerticalFOV(17.142);	
 	fileInfrastructure.setProjectorHorizontalFOV(60);	
+	fileInfrastructure.setProjectorVerticalFOV(35.983);	
 	
-//	blenderVirtualInfrastructure.setCameraHorizontalFOV(30); 
-//	blenderVirtualInfrastructure.setProjectorHorizontalFOV(60); 
-
+	blenderVirtualInfrastructure.setCameraHorizontalFOV(30); 
+	blenderVirtualInfrastructure.setCameraVerticalFOV(17.142);	
+	blenderVirtualInfrastructure.setProjectorHorizontalFOV(60); 
+	blenderVirtualInfrastructure.setProjectorVerticalFOV(35.983); 
+*/
 //	blenderVirtualInfrastructure.setCameraResolution(Size(2048, 100)); 
 
 //	BinaryImplementation binaryImplementation;
 //	GrayCodedBinaryImplementation grayCodedBinaryImplementation;
 //	PSMImplementation psmImplementation;
 //	DeBruijnImplementation deBruijnImplementation;
+
 	RaycastImplementation raycastImplementation;
 	SingleLineImplementation singleLineImplementation(1920);
 //	SingleLineImplementation singleLineImplementation(2048);
@@ -97,8 +106,8 @@ int blenderInfrastructureExample() {
 //	slSpeedDepthExperiment experiment6(&fileInfrastructure, &deBruijnImplementation);
 //
 	slSpeedDepthExperiment experiment7(&blenderVirtualInfrastructure, &raycastImplementation);
-//	slSpeedDepthExperiment experiment8(&blenderVirtualInfrastructure, &singleLineImplementation);
-	slSpeedDepthExperiment experiment8(&fileInfrastructure, &singleLineImplementation);
+	slSpeedDepthExperiment experiment8(&blenderVirtualInfrastructure, &singleLineImplementation);
+//	slSpeedDepthExperiment experiment8(&fileInfrastructure, &singleLineImplementation);
 
 //	experiment1.run();
 //	experiment2.run();
@@ -121,6 +130,9 @@ int blenderInfrastructureExample() {
 	speedBenchmark.addExperiment(&experiment8);
 
 	speedBenchmark.compareExperiments();
+
+	sl3DReconstructor::writeXYZPointCloud(&experiment7);
+	sl3DReconstructor::writeXYZPointCloud(&experiment8);
 
 	return 0;
 }

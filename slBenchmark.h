@@ -35,17 +35,18 @@
 #include <opencv2/opencv.hpp>
 
 //Default camera resolution
-#define DEFAULT_CAMERA_PROJECTOR_WIDTH	1920
-#define DEFAULT_CAMERA_PROJECTOR_HEIGHT	1080
+#define DEFAULT_CAMERA_PROJECTOR_WIDTH		1920
+#define DEFAULT_CAMERA_PROJECTOR_HEIGHT		1080
 
 //Default camera/projector FOV
-#define DEFAULT_CAMERA_PROJECTOR_FOV	49.134
+#define DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV	49.134
+#define DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV	28.841
 
 //Default camera index
-#define DEFAULT_CAMERA_INDEX		0
+#define DEFAULT_CAMERA_INDEX			0
 
 //Default projection and capture wait (pause) time in milliseconds
-#define DEFAULT_WAIT_TIME		1000
+#define DEFAULT_WAIT_TIME			1000
 
 using namespace std;
 using namespace cv;
@@ -171,11 +172,23 @@ class slInfrastructure {
 		//Set the horizontal camera FOV angle (degrees)
 		void setCameraHorizontalFOV(double);
 
+		//Get the vertical camera FOV angle (degrees)
+		double getCameraVerticalFOV();
+
+		//Set the vertical camera FOV angle (degrees)
+		void setCameraVerticalFOV(double);
+
 		//Get the horizontal projector FOV angle (degrees)
 		double getProjectorHorizontalFOV();
 
 		//Set the horizontal projector FOV angle (degrees)
 		void setProjectorHorizontalFOV(double);
+
+		//Get the vertical projector FOV angle (degrees)
+		double getProjectorVerticalFOV();
+
+		//Set the vertical projector FOV angle (degrees)
+		void setProjectorVerticalFOV(double);
 
 		//A reference to the current experiment
 		slExperiment *experiment;
@@ -192,6 +205,12 @@ class slInfrastructure {
 
 		//The projector horizontal FOV (degrees)
 		double projectorHorizontalFOV;
+
+		//The camera vertical FOV (degrees)
+		double cameraVerticalFOV;
+
+		//The projector horizontal FOV (degrees)
+		double projectorVerticalFOV;
 
 	private:
 		//The name of this infrastructure
@@ -351,10 +370,13 @@ class slDepthExperiment : public virtual slExperiment {
 
 		//Store a result of this experiment
 		virtual void storeResult(slExperimentResult *);
-		
-		//Run after the implementation processes after all the iterations
-		virtual void runPostImplementationPostIterationsProcess();
 
+		//Check if depth data value has been set
+		bool isDepthDataValued(int);
+
+		//Get depth data value
+		double getDepthData(int);
+		
 	private:
 		//Check if the depth data value has been set
 		bool *depthDataValued;
@@ -453,4 +475,12 @@ class slSpeedBenchmark : public slBenchmark {
 		//Compare the experiments of this benchmark
 		virtual void compareExperiments();
 };
+
+//Reconstruct the 3D data of a given depth expriment
+class sl3DReconstructor {
+	public:
+		//Write a XYZ point cloud file for the given depth experiment
+		static void writeXYZPointCloud(slDepthExperiment *);
+};
+
 #endif //SLBENCHMARK_H

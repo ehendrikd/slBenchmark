@@ -32,6 +32,7 @@ class SingleLineImplementation : public slImplementation {
 	protected:
 		int numberColumns;
 		double *originalColumn;
+		int interlines;
 };
 
 #endif //SINGLE_LINE_IMPLEMENTATION_H
