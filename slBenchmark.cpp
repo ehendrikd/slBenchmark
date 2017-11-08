@@ -532,12 +532,12 @@ string slExperiment::getIdentifier() {
 
 //Create a depth experiment
 slDepthExperiment::slDepthExperiment(slInfrastructure *newlInfrastructure, slImplementation *newImplementation) : slExperiment(newlInfrastructure, newImplementation), depthData(NULL) {
-	int arraySize = infrastructure->getCameraResolution().width * infrastructure->getCameraResolution().height;
+	numDepthDataValues = infrastructure->getCameraResolution().width * infrastructure->getCameraResolution().height;
 
-	depthDataValued = new bool[arraySize];
-	depthData = new double[arraySize];
+	depthDataValued = new bool[numDepthDataValues];
+	depthData = new double[numDepthDataValues];
 
-	for (int index = 0; index < arraySize; index++) {
+	for (int index = 0; index < numDepthDataValues; index++) {
 		depthDataValued[index] = false;
 		depthData[index] = 0.0;
 	}
@@ -559,6 +559,11 @@ void slDepthExperiment::storeResult(slExperimentResult *experimentResult) {
 	
 	depthDataValued[arrayOffset] = true;
 	depthData[arrayOffset] = depthExperimentResult->z;
+}
+
+//Get the number of depth data values
+int slDepthExperiment::getNumDepthDataValues() {
+	return numDepthDataValues;
 }
 
 //Check if depth data value has been set
@@ -647,23 +652,28 @@ slSpeedDepthExperiment::slSpeedDepthExperiment(slInfrastructure *newlInfrastruct
 }
 
 /*
- * slResultRenderer
- */ 
-
-//void slResult
-
-/*
  * slBenchmark
  */ 
 
-//Create a structured light benchmark
-slBenchmark::slBenchmark() {
+//Create a structured light benchmark given a reference experiment
+slBenchmark::slBenchmark(slExperiment *newReferenceExperiment) : referenceExperiment(newReferenceExperiment) {
+	metrics = new vector<slMetric *>();
 	experiments = new vector<slExperiment *>();
 }
 
 //Clean up
 slBenchmark::~slBenchmark() {
+	for (vector<slMetric *>::iterator metric = metrics->begin(); metric != metrics->end(); ++metric) {
+		delete (*metric);
+	}
+
+	delete metrics;
 	delete experiments;
+}
+
+//Add a metric to this benchmark
+void slBenchmark::addMetric(slMetric *newMetric) {
+	metrics->push_back(newMetric);
 }
 
 //Add an experiment to this benchmark
@@ -671,18 +681,80 @@ void slBenchmark::addExperiment(slExperiment *newExperiment) {
 	experiments->push_back(newExperiment);
 }
 
+//Compare the experiments of this benchmark
+void slBenchmark::compareExperiments() {
+	for (vector<slMetric *>::iterator metric = metrics->begin(); metric != metrics->end(); ++metric) {
+		for (vector<slExperiment *>::iterator experiment = experiments->begin(); experiment != experiments->end(); ++experiment) {
+			(*metric)->compareExperimentAgainstReference((*experiment), referenceExperiment);
+		}
+	}
+}
+
 /*
- * slSpeedBenchmark
+ * slSpeedMetric
  */ 
 
-//Compare the experiments of this benchmark
-void slSpeedBenchmark::compareExperiments() {
-	int index = 0;
-	for (vector<slExperiment *>::iterator experiment = experiments->begin(); experiment != experiments->end(); ++experiment) {
-		slSpeedExperiment *speedExperiment = dynamic_cast<slSpeedExperiment *>(*experiment);
-		DB(speedExperiment->getIdentifier() << " totalClock: " << speedExperiment->getTotalClock() << " (" << ((double)speedExperiment->getTotalClock() / (double)CLOCKS_PER_SEC) << " seconds)")
-		index++;
+//Compare an experiment against the reference experiment
+void slSpeedMetric::compareExperimentAgainstReference(slExperiment *referenceExperiment, slExperiment *experiment) {
+	slSpeedExperiment *referenceSpeedExperiment = dynamic_cast<slSpeedExperiment *>(referenceExperiment);
+	slSpeedExperiment *speedExperiment = dynamic_cast<slSpeedExperiment *>(experiment);
+
+	double speedDifference = referenceSpeedExperiment->getTotalClock() - speedExperiment->getTotalClock();
+
+	DB("Ref: " << referenceSpeedExperiment->getIdentifier() << " totalClock: " << referenceSpeedExperiment->getTotalClock() << " (" << ((double)referenceSpeedExperiment->getTotalClock() / (double)CLOCKS_PER_SEC) << " seconds)")
+	DB(speedExperiment->getIdentifier() << " totalClock: " << speedExperiment->getTotalClock() << " (" << ((double)speedExperiment->getTotalClock() / (double)CLOCKS_PER_SEC) << " seconds)")
+	DB("Difference totalClock: " << speedDifference << " (" << (speedDifference / (double)CLOCKS_PER_SEC) << " seconds)")
+}
+
+/*
+ * slAccuracyMetric
+ */ 
+
+//Compare an experiment against the reference experiment
+void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *referenceExperiment, slExperiment *experiment) {
+	slDepthExperiment *referenceDepthExperiment = dynamic_cast<slDepthExperiment *>(referenceExperiment);
+	slDepthExperiment *depthExperiment = dynamic_cast<slDepthExperiment *>(experiment);
+
+	double totalDifference = 0.0;
+
+	for (int depthDataIndex = 0; depthDataIndex < referenceDepthExperiment->getNumDepthDataValues(); depthDataIndex++) {
+		if (referenceDepthExperiment->isDepthDataValued(depthDataIndex) && depthExperiment->isDepthDataValued(depthDataIndex)) {
+			double depthDifference = referenceDepthExperiment->getDepthData(depthDataIndex) - depthExperiment->getDepthData(depthDataIndex);
+			totalDifference += depthDifference;
+		}
 	}
+
+	DB("Ref: " << referenceDepthExperiment->getIdentifier() << " vs " << depthExperiment->getIdentifier() << " accuracy diff: " << totalDifference)
+}
+
+/*
+ * slResolutionMetric
+ */ 
+
+//Compare an experiment against the reference experiment
+void slResolutionMetric::compareExperimentAgainstReference(slExperiment *referenceExperiment, slExperiment *experiment) {
+	slDepthExperiment *referenceDepthExperiment = dynamic_cast<slDepthExperiment *>(referenceExperiment);
+	slDepthExperiment *depthExperiment = dynamic_cast<slDepthExperiment *>(experiment);
+
+	int referenceDataValues = 0;
+	
+	for (int depthDataIndex = 0; depthDataIndex < referenceDepthExperiment->getNumDepthDataValues(); depthDataIndex++) {
+		if (referenceDepthExperiment->isDepthDataValued(depthDataIndex)) {
+			referenceDataValues++;
+		}
+	}
+
+	int dataValues = 0;
+	
+	for (int depthDataIndex = 0; depthDataIndex < depthExperiment->getNumDepthDataValues(); depthDataIndex++) {
+		if (depthExperiment->isDepthDataValued(depthDataIndex)) {
+			dataValues++;
+		}
+	}
+
+	int resolutionDifference = referenceDataValues - dataValues;
+
+	DB("Ref: " << referenceDepthExperiment->getIdentifier() << " vs " << depthExperiment->getIdentifier() << " resolution diff: " << resolutionDifference)
 }
 
 /*

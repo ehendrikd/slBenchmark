@@ -31,6 +31,7 @@ int fileInfrastructureExample() {
 	DeBruijnImplementation deBruijnImplementation;
 
 	/* Experiments */
+/*	
 	slSpeedDepthExperiment experiment1(&fileInfrastructureBinary, &binaryImplementation);
 	slSpeedDepthExperiment experiment2(&fileInfrastructureGray, &grayCodedBinaryImplementation);
 	slSpeedDepthExperiment experiment3(&fileInfrastructurePhaseShift, &psmImplementation);
@@ -49,7 +50,7 @@ int fileInfrastructureExample() {
 	speedBenchmark.addExperiment(&experiment4);
 
 	speedBenchmark.compareExperiments();
-
+*/
 	return 0;
 }
 
@@ -68,7 +69,8 @@ int blenderInfrastructureExample() {
 //	slFileInfrastructure fileInfrastructure("singleline_45_deg");
 //	slFileInfrastructure fileInfrastructure("default_fov_45");
 //	slFileInfrastructure fileInfrastructure("30_60_fov_45");
-	slFileInfrastructure fileInfrastructure("default_fov_cube_steps");
+//	slFileInfrastructure fileInfrastructure("default_fov_cube_steps");
+	slFileInfrastructure fileInfrastructure("default_fov_sphere_cube");
 	
 	fileInfrastructure.setCameraHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV);	
 	fileInfrastructure.setCameraVerticalFOV(DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV);	
@@ -87,50 +89,58 @@ int blenderInfrastructureExample() {
 */
 //	blenderVirtualInfrastructure.setCameraResolution(Size(2048, 100)); 
 
-//	BinaryImplementation binaryImplementation;
-//	GrayCodedBinaryImplementation grayCodedBinaryImplementation;
-//	PSMImplementation psmImplementation;
-//	DeBruijnImplementation deBruijnImplementation;
+	BinaryImplementation binaryImplementation;
+	GrayCodedBinaryImplementation grayCodedBinaryImplementation;
+	PSMImplementation psmImplementation;
+	DeBruijnImplementation deBruijnImplementation;
 
 	RaycastImplementation raycastImplementation;
 	SingleLineImplementation singleLineImplementation(1920);
 //	SingleLineImplementation singleLineImplementation(2048);
 
-//	slSpeedDepthExperiment experiment1(&blenderVirtualInfrastructure, &binaryImplementation);
-//	slSpeedDepthExperiment experiment2(&blenderVirtualInfrastructure, &grayCodedBinaryImplementation);
-//	slSpeedDepthExperiment experiment3(&blenderVirtualInfrastructure, &psmImplementation);
-//	slSpeedDepthExperiment experiment4(&blenderVirtualInfrastructure, &deBruijnImplementation);
+	slSpeedDepthExperiment experiment1(&blenderVirtualInfrastructure, &binaryImplementation);
+	slSpeedDepthExperiment experiment2(&blenderVirtualInfrastructure, &grayCodedBinaryImplementation);
+	slSpeedDepthExperiment experiment3(&blenderVirtualInfrastructure, &psmImplementation);
+	slSpeedDepthExperiment experiment4(&blenderVirtualInfrastructure, &deBruijnImplementation);
 
 //	slSpeedDepthExperiment experiment5(&physicalInfrastructure, &deBruijnImplementation);
 //	slSpeedDepthExperiment experiment5(&physicalInfrastructure, &binaryImplementation);
 //	slSpeedDepthExperiment experiment6(&fileInfrastructure, &deBruijnImplementation);
 //
 	slSpeedDepthExperiment experiment7(&blenderVirtualInfrastructure, &raycastImplementation);
-	slSpeedDepthExperiment experiment8(&blenderVirtualInfrastructure, &singleLineImplementation);
-//	slSpeedDepthExperiment experiment8(&fileInfrastructure, &singleLineImplementation);
+//	slSpeedDepthExperiment experiment8(&blenderVirtualInfrastructure, &singleLineImplementation);
+	slSpeedDepthExperiment experiment8(&fileInfrastructure, &singleLineImplementation);
 
-//	experiment1.run();
-//	experiment2.run();
-//	experiment3.run();
-//	experiment4.run();
+	experiment1.run();
+	experiment2.run();
+	experiment3.run();
+	experiment4.run();
 //	experiment5.run();
 //	experiment6.run();
 	experiment7.run();
 	experiment8.run();
 
-	slSpeedBenchmark speedBenchmark;
+	slBenchmark benchmark(&experiment7);
 
-//	speedBenchmark.addExperiment(&experiment1);
-//	speedBenchmark.addExperiment(&experiment2);
-//	speedBenchmark.addExperiment(&experiment3);
-//	speedBenchmark.addExperiment(&experiment4);
-//	speedBenchmark.addExperiment(&experiment5);
-//	speedBenchmark.addExperiment(&experiment6);
-	speedBenchmark.addExperiment(&experiment7);
-	speedBenchmark.addExperiment(&experiment8);
+	benchmark.addExperiment(&experiment1);
+	benchmark.addExperiment(&experiment2);
+	benchmark.addExperiment(&experiment3);
+	benchmark.addExperiment(&experiment4);
+//	benchmark.addExperiment(&experiment5);
+//	benchmark.addExperiment(&experiment6);
+//	benchmark.addExperiment(&experiment7);
+	benchmark.addExperiment(&experiment8);
 
-	speedBenchmark.compareExperiments();
+	benchmark.addMetric(new slSpeedMetric());
+	benchmark.addMetric(new slAccuracyMetric());
+	benchmark.addMetric(new slResolutionMetric());
 
+	benchmark.compareExperiments();
+
+	sl3DReconstructor::writeXYZPointCloud(&experiment1);
+	sl3DReconstructor::writeXYZPointCloud(&experiment2);
+	sl3DReconstructor::writeXYZPointCloud(&experiment3);
+	sl3DReconstructor::writeXYZPointCloud(&experiment4);
 	sl3DReconstructor::writeXYZPointCloud(&experiment7);
 	sl3DReconstructor::writeXYZPointCloud(&experiment8);
 

@@ -371,6 +371,9 @@ class slDepthExperiment : public virtual slExperiment {
 		//Store a result of this experiment
 		virtual void storeResult(slExperimentResult *);
 
+		//Get the number of depth data values
+		int getNumDepthDataValues();
+
 		//Check if depth data value has been set
 		bool isDepthDataValued(int);
 
@@ -378,6 +381,9 @@ class slDepthExperiment : public virtual slExperiment {
 		double getDepthData(int);
 		
 	private:
+		//Number of depth data values
+		int numDepthDataValues;
+
 		//Check if the depth data value has been set
 		bool *depthDataValued;
 
@@ -449,31 +455,67 @@ class slSpeedDepthExperiment : public slSpeedExperiment, public slDepthExperimen
 		slSpeedDepthExperiment(slInfrastructure *, slImplementation *);
 };
 
+//A metric to measure for a benchmark
+class slMetric {
+	public:
+		//Create a metric
+		slMetric() {};
+
+		//Clean up
+		virtual ~slMetric() {};
+
+		//Compare an experiment against the reference experiment
+		virtual void compareExperimentAgainstReference(slExperiment *, slExperiment *) = 0;
+};
+
+//Metric that compares the processing speed of experiments
+class slSpeedMetric : public slMetric {
+	public:
+		//Compare an experiment against the reference experiment
+		virtual void compareExperimentAgainstReference(slExperiment *, slExperiment *);
+};
+
+//Metric that compares the depth accuracy of experiments
+class slAccuracyMetric : public slMetric {
+	public:
+		//Compare an experiment against the reference experiment
+		virtual void compareExperimentAgainstReference(slExperiment *, slExperiment *);
+};
+
+//Metric that compares the resolution of experiments
+class slResolutionMetric : public slMetric {
+	public:
+		//Compare an experiment against the reference experiment
+		virtual void compareExperimentAgainstReference(slExperiment *, slExperiment *);
+};
+
 //Abstract structured light benchmarking class that can compare measurable values of experiements
 class slBenchmark {
 	public:
-		//Create a structured light benchmark
-		slBenchmark();
+		//Create a structured light benchmark given a reference experiment
+		slBenchmark(slExperiment *);
 
 		//Clean up
 		~slBenchmark();
+
+		//Add an metric to this benchmark
+		void addMetric(slMetric *);
 
 		//Add an experiment to this benchmark
 		void addExperiment(slExperiment *);
 
 		//Compare the experiments of this benchmark
-		virtual void compareExperiments() = 0;
+		void compareExperiments();
 
 	protected:
+		//The reference experiment to compare all other experiments against
+		slExperiment *referenceExperiment;
+
+		//The metrics to benchmark against
+		vector<slMetric *> *metrics;
+
 		//The experiments to benchmark
 		vector<slExperiment *> *experiments;
-};
-
-//Benchmark that compares the processing speed of each experiment
-class slSpeedBenchmark : public slBenchmark {
-	public:
-		//Compare the experiments of this benchmark
-		virtual void compareExperiments();
 };
 
 //Reconstruct the 3D data of a given depth expriment
