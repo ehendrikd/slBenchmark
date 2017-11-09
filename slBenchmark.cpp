@@ -75,7 +75,6 @@ double slImplementation::getDisplacement(double x_pattern, double x_image) {
     double gammap = infrastructure->getProjectorHorizontalFOV() * piOn180; // depths of projector view in radians.
     double tgc = tan(gammac/2), tgp = tan(gammap/2);
     double Delta = 1; // Distance between camera and projector
-
     return Delta / 2 / (tgp*xp - tgc*xc);
 }
 
@@ -101,10 +100,10 @@ void slImplementation::iterateCorrespondences() {
 
 	for (int y = 0; y < projectorResolution.height; y++) {
 		for (int xProjector = 0; xProjector < projectorResolution.width; xProjector++) {
-			double xCamera = solveCorrespondence(xProjector,y);
+			double xCamera = solveCorrespondence(xProjector, y);
 
-			if (!isnan(xCamera) && xCamera != -1) {				
-				double displacement = getDisplacement( xProjector,xCamera);
+			if (!isnan(xCamera) && xCamera != -1) {		
+				double displacement = getDisplacement(xProjector, xCamera);
 				slDepthExperimentResult result(xProjector, y, displacement);
 				//slDepthExperimentResult result(x, y, xSolved);
 				experiment->storeResult(&result);

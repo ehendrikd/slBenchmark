@@ -13,7 +13,7 @@ class BinaryImplementation : public slImplementation {
 		virtual ~BinaryImplementation() {};
 		void preExperimentRun();
 		void postExperimentRun();
-	        virtual double getPatternWidth();
+	        //virtual double getPatternWidth();
 		bool hasMoreIterations();
 		virtual Mat generatePattern();
 		virtual void iterationProcess();

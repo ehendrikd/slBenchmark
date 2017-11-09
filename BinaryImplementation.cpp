@@ -24,9 +24,9 @@ void BinaryImplementation::preExperimentRun() {
 
 // For binary implementations, the "width" of the pattern
 // is the number of columns.
-double BinaryImplementation::getPatternWidth() {
-	return (double) this->getNumberColumns();
-}
+//double BinaryImplementation::getPatternWidth() {
+//	return (double) this->getNumberColumns();
+//}
 
 unsigned int BinaryImplementation::getNumberPatterns() {
     return this->numberPatterns;
@@ -36,9 +36,21 @@ unsigned int BinaryImplementation::getNumberColumns() {
     return this->numberColumns;
 }
 
-int BinaryImplementation::getBinaryCode(int x, int y) {
+int BinaryImplementation::getBinaryCode(int xProjector, int y) {
 	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
-	return this->binaryCode[(y * cameraResolution.width) + x];
+//	return this->binaryCode[(y * cameraResolution.width) + xProjector];
+
+	int columnWidth = cameraResolution.width / numberColumns;
+
+	for (int x = 0; x < cameraResolution.width; x++) {
+		int binaryXProjector = binaryCode[(y * cameraResolution.width) + x] * columnWidth;
+
+		if (binaryXProjector == xProjector) {
+			return x;
+		}
+	}
+
+	return -1;
 }
 
 void BinaryImplementation::postExperimentRun() {
@@ -123,18 +135,38 @@ void BinaryImplementation::iterationProcess() {
 		}	
 	}
 }
+/*
+void BinaryImplementation::processCaptures() {
+	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 
-double BinaryImplementation::solveCorrespondence(int x, int y) {
+	int lookupArraySize = cameraResolution.height * numColumns;
+	int arraySize = cameraResolution.width * cameraResolution.height;
+	
+	projectorColumnLookup = new int[lookupArraySize];
+
+	for (int index = 0; index < lookupArraySize; index++) {
+		projectorColumnLookup[index] = -1;
+	}
+
+	for (int index = 0; index < arraySize; index++) {
+		
+	}
+}
+*/
+double BinaryImplementation::solveCorrespondence(int xProjector, int y) {
 	static int lastBinaryCode = -1;
+	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
+	int columnWidth = cameraResolution.width / numberColumns;
 
-	if (x == 0) {
+	if (xProjector == 0) {
 		lastBinaryCode = -1;
 	}
 
-	int currentBinaryCode = getBinaryCode(x,y);
+	int currentBinaryCode = getBinaryCode(xProjector, y);
 
 	if (currentBinaryCode != -1 && currentBinaryCode != lastBinaryCode) {
 		lastBinaryCode = currentBinaryCode;
+
 		return (double)currentBinaryCode;
 	}
 

@@ -41,9 +41,9 @@ Mat SingleLineImplementation::generatePattern() {
 	return pattern;
 }
 
-double SingleLineImplementation::solveCorrespondence(int x, int y) {
-	if (x%interlines != 0) return -1;
-	Mat lineMat = experiment->getCaptureAt(x/interlines);
+double SingleLineImplementation::solveCorrespondence(int xProjector, int y) {
+	if (xProjector % interlines != 0) return -1;
+	Mat lineMat = experiment->getCaptureAt(xProjector / interlines);
 
 	double lineTotal = 0.0;
 	double aTotal = 0.0;
@@ -56,7 +56,7 @@ double SingleLineImplementation::solveCorrespondence(int x, int y) {
 		lineTotal += colourTotal;
 		aTotal += ((double)column * colourTotal);
 	}
-
+	
 	return aTotal / lineTotal;
 }
 
