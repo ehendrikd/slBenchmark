@@ -60,6 +60,9 @@ double slImplementation::getCaptureWidth() {
 }
 
 double slImplementation::getDisplacement(double x_pattern, double x_image) {
+	return getDisplacement(x_pattern, x_image, false);
+}
+double slImplementation::getDisplacement(double x_pattern, double x_image, bool temp) {
     // Proper calculation of displacement depends on the following parameters:
     // * depth of view of the camera and of the projector
     // * Resolution of the camera and the projector
@@ -74,7 +77,14 @@ double slImplementation::getDisplacement(double x_pattern, double x_image) {
     double gammac = infrastructure->getCameraHorizontalFOV() * piOn180; // depth of camera view in radians.
     double gammap = infrastructure->getProjectorHorizontalFOV() * piOn180; // depths of projector view in radians.
     double tgc = tan(gammac/2), tgp = tan(gammap/2);
-    double Delta = 1; // Distance between camera and projector
+    double Delta = infrastructure->getCameraProjectorSeparation(); // Distance between camera and projector
+
+if (temp) {
+	DB("xc[" << xc << "] = x_image[" << x_image << "]/getCaptureWidth()[" << getCaptureWidth() << "] - 0.5")
+	DB("xp[" << xp << "] = x_pattern[" << x_pattern << "]/getPatternWidth()[" << getPatternWidth() << "] - 0.5")
+	DB("tgc[" << tgc << "] = tan(gammac[" << gammac << "]/2), tgp[" << tgp << "] = tan(gammap[" << gammap << "]/2")
+}
+
     return Delta / 2 / (tgp*xp - tgc*xc);
 }
 
@@ -96,17 +106,35 @@ void slImplementation::postIterationsProcess() {
 
 //Iterate through the captures to solve the correseponce problem
 void slImplementation::iterateCorrespondences() {
-	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
+	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 
-	for (int y = 0; y < projectorResolution.height; y++) {
-		for (int xProjector = 0; xProjector < projectorResolution.width; xProjector++) {
+	for (int y = 0; y < cameraResolution.height; y++) {
+		for (int xProjector = 0; xProjector < getPatternWidth(); xProjector++) {
 			double xCamera = solveCorrespondence(xProjector, y);
 
 			if (!isnan(xCamera) && xCamera != -1) {		
-				double displacement = getDisplacement(xProjector, xCamera);
-				slDepthExperimentResult result(xProjector, y, displacement);
-				//slDepthExperimentResult result(x, y, xSolved);
-				experiment->storeResult(&result);
+				bool temp = false;
+				if (y == 540 && (xProjector == 1 || xProjector == 30)) {
+					temp = true;	
+				}
+				double displacement = getDisplacement(xProjector, xCamera, temp);
+
+				if (!isinf(displacement)) {
+
+					if (y == 540 && (xProjector == 1 || xProjector == 30)) {
+						DB("displacement: " << displacement)
+					}
+					double xResultDouble = ((double)xProjector / getPatternWidth()) * cameraResolution.width;
+					int xResult = (int)xResultDouble;
+
+					if (y == 540) {
+						DB("xResult: " << xResult << " xResultDouble: " << xResultDouble)
+					}
+					
+					//slDepthExperimentResult result((int)(((double)xProjector / getPatternWidth()) * cameraResolution.width), y, displacement);
+					slDepthExperimentResult result(xResult, y, displacement);
+					experiment->storeResult(&result);
+				}
 			}
 		}
 	}
@@ -117,7 +145,7 @@ void slImplementation::iterateCorrespondences() {
  */ 
 
 //Create an infrastructure instance with a name, camera resolution and cropped area
-slInfrastructure::slInfrastructure(string newName, Size newCameraResolution, Size newProjectorResolution): name(newName), cameraResolution(newCameraResolution), projectorResolution(newProjectorResolution), cameraHorizontalFOV(0), projectorHorizontalFOV(0), cameraVerticalFOV(0), projectorVerticalFOV(0), experiment(NULL) {
+slInfrastructure::slInfrastructure(string newName, Size newCameraResolution, Size newProjectorResolution): name(newName), cameraResolution(newCameraResolution), projectorResolution(newProjectorResolution), cameraHorizontalFOV(0), projectorHorizontalFOV(0), cameraVerticalFOV(0), projectorVerticalFOV(0), cameraProjectorSeparation(0), experiment(NULL) {
 }
 
 //The name of this infrastructure
@@ -185,6 +213,16 @@ void slInfrastructure::setProjectorVerticalFOV(double newProjectorVerticalFOV) {
 	projectorVerticalFOV = newProjectorVerticalFOV;
 }
 
+//Get the distance between the camera and the projector
+double slInfrastructure::getCameraProjectorSeparation() {
+	return cameraProjectorSeparation;
+}
+
+//Set the distance between the camera and the projector
+void slInfrastructure::setCameraProjectorSeparation(double newCameraProjectorSeparation) {
+	cameraProjectorSeparation = newCameraProjectorSeparation;
+}
+
 /*
  * slBlenderVirtualInfrastructure
  */ 
@@ -195,6 +233,7 @@ slBlenderVirtualInfrastructure::slBlenderVirtualInfrastructure() : slInfrastruct
 	setCameraVerticalFOV(DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV);
 	setProjectorHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV);
 	setProjectorVerticalFOV(DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV);
+	setCameraProjectorSeparation(1);
 }
 
 //Project the structured light implementation pattern and capture it
@@ -532,6 +571,7 @@ string slExperiment::getIdentifier() {
 //Create a depth experiment
 slDepthExperiment::slDepthExperiment(slInfrastructure *newlInfrastructure, slImplementation *newImplementation) : slExperiment(newlInfrastructure, newImplementation), depthData(NULL) {
 	numDepthDataValues = infrastructure->getCameraResolution().width * infrastructure->getCameraResolution().height;
+	//numDepthDataValues = infrastructure->getPatternWidth() * infrastructure->getCameraResolution().height;
 
 	depthDataValued = new bool[numDepthDataValues];
 	depthData = new double[numDepthDataValues];
@@ -714,7 +754,7 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *reference
 	slDepthExperiment *referenceDepthExperiment = dynamic_cast<slDepthExperiment *>(referenceExperiment);
 	slDepthExperiment *depthExperiment = dynamic_cast<slDepthExperiment *>(experiment);
 
-	double totalDifference = 0.0;
+/*	double totalDifference = 0.0;
 
 	for (int depthDataIndex = 0; depthDataIndex < referenceDepthExperiment->getNumDepthDataValues(); depthDataIndex++) {
 		if (referenceDepthExperiment->isDepthDataValued(depthDataIndex) && depthExperiment->isDepthDataValued(depthDataIndex)) {
@@ -724,6 +764,7 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *reference
 	}
 
 	DB("Ref: " << referenceDepthExperiment->getIdentifier() << " vs " << depthExperiment->getIdentifier() << " accuracy diff: " << totalDifference)
+*/	
 }
 
 /*

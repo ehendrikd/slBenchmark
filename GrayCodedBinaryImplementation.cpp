@@ -28,11 +28,26 @@ Mat GrayCodedBinaryImplementation::generatePattern() {
 }
 
 // Getters and Setters
-int GrayCodedBinaryImplementation::getBinaryCode(int x, int y) {
-    Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
-    int binCode = this->binaryCode[(y * cameraResolution.width) + x];
-    if(binCode == -1) return -1;
-    return convertGrayCodeToInteger(binCode, numberColumns, getNumberPatterns());
+double GrayCodedBinaryImplementation::getBinaryCode(int xProjector, int y) {
+	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
+/*	
+	int binCode = this->binaryCode[(y * cameraResolution.width) + xProjector];
+	if(binCode == -1) return -1;
+	return convertGrayCodeToInteger(binCode, numberColumns, getNumberPatterns());
+*/
+	int columnWidth = cameraResolution.width / numberColumns;
+
+
+	for (int x = 0; x < cameraResolution.width; x++) {
+		int binaryXProjector = convertGrayCodeToInteger(binaryCode[(y * cameraResolution.width) + x], numberColumns, getNumberPatterns()) * columnWidth;
+
+		if (binaryXProjector == xProjector) {
+			return (double)x;
+		}
+	}
+
+	return -1;
+
 }
 
 

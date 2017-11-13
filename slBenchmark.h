@@ -94,6 +94,7 @@ class slImplementation {
 
 		//Compute the depth from a pair of x coordinates from the projection pattern and the image
 		virtual double getDisplacement(double,double);
+		virtual double getDisplacement(double,double,bool);
 
 		//Get the identifier
 		string getIdentifier();
@@ -190,6 +191,12 @@ class slInfrastructure {
 		//Set the vertical projector FOV angle (degrees)
 		void setProjectorVerticalFOV(double);
 
+		//Get the distance between the camera and the projector
+		double getCameraProjectorSeparation();
+
+		//Set the distance between the camera and the projector
+		void setCameraProjectorSeparation(double);
+
 		//A reference to the current experiment
 		slExperiment *experiment;
 
@@ -211,6 +218,9 @@ class slInfrastructure {
 
 		//The projector horizontal FOV (degrees)
 		double projectorVerticalFOV;
+
+		//The distance between the camera and the projector
+		double cameraProjectorSeparation;
 
 	private:
 		//The name of this infrastructure

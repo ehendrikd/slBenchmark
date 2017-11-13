@@ -13,7 +13,7 @@ class BinaryImplementation : public slImplementation {
 		virtual ~BinaryImplementation() {};
 		void preExperimentRun();
 		void postExperimentRun();
-	        //virtual double getPatternWidth();
+	        virtual double getPatternWidth();
 		bool hasMoreIterations();
 		virtual Mat generatePattern();
 		virtual void iterationProcess();
@@ -21,7 +21,7 @@ class BinaryImplementation : public slImplementation {
 		//Getters and Setters
 		unsigned int getNumberPatterns();
 		unsigned int getNumberColumns();
-		virtual int getBinaryCode(int, int);
+		virtual double getBinaryCode(int, int);
 
                 // The next function determine whether a colour can be
                 // considered to be white or black. This is determined by 

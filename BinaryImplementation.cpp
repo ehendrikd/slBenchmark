@@ -1,9 +1,11 @@
 #include "BinaryImplementation.h"
 
 BinaryImplementation::BinaryImplementation(): slImplementation(string("BinaryImplementation")) {
-        numberPatterns = 6;
+        //numberPatterns = 6;
+        numberPatterns = 8;
         Black_Value = 0;
-        White_Value = 195;
+	//White_Value = 195;
+        White_Value = 255;
         Black_Threshold = -50;
         White_Threshold = 50;
 }
@@ -24,9 +26,9 @@ void BinaryImplementation::preExperimentRun() {
 
 // For binary implementations, the "width" of the pattern
 // is the number of columns.
-//double BinaryImplementation::getPatternWidth() {
-//	return (double) this->getNumberColumns();
-//}
+double BinaryImplementation::getPatternWidth() {
+	return (double) this->getNumberColumns();
+}
 
 unsigned int BinaryImplementation::getNumberPatterns() {
     return this->numberPatterns;
@@ -36,17 +38,15 @@ unsigned int BinaryImplementation::getNumberColumns() {
     return this->numberColumns;
 }
 
-int BinaryImplementation::getBinaryCode(int xProjector, int y) {
+double BinaryImplementation::getBinaryCode(int xProjector, int y) {
 	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 //	return this->binaryCode[(y * cameraResolution.width) + xProjector];
 
-	int columnWidth = cameraResolution.width / numberColumns;
-
 	for (int x = 0; x < cameraResolution.width; x++) {
-		int binaryXProjector = binaryCode[(y * cameraResolution.width) + x] * columnWidth;
+		int binaryXProjector = binaryCode[(y * cameraResolution.width) + x];
 
 		if (binaryXProjector == xProjector) {
-			return x;
+			return (double)x;
 		}
 	}
 
@@ -154,20 +154,18 @@ void BinaryImplementation::processCaptures() {
 }
 */
 double BinaryImplementation::solveCorrespondence(int xProjector, int y) {
-	static int lastBinaryCode = -1;
-	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
-	int columnWidth = cameraResolution.width / numberColumns;
+	static double lastBinaryCode = -1;
 
 	if (xProjector == 0) {
 		lastBinaryCode = -1;
 	}
 
-	int currentBinaryCode = getBinaryCode(xProjector, y);
+	double currentBinaryCode = getBinaryCode(xProjector, y);
 
 	if (currentBinaryCode != -1 && currentBinaryCode != lastBinaryCode) {
 		lastBinaryCode = currentBinaryCode;
 
-		return (double)currentBinaryCode;
+		return currentBinaryCode;
 	}
 
 	return -1;

@@ -36,7 +36,13 @@
  */ 
 
 //Create a file infrastructure instance
-slFileInfrastructure::slFileInfrastructure(string dirname) : slInfrastructure(string("slFileInfrastructure")) {
+slFileInfrastructure::slFileInfrastructure(string dirname, double newCameraHorizontalFOV, double newCameraVerticalFOV, double newProjectorHorizontalFOV, double newProjectorVerticalFOV, double newCameraProjectorSeparation) : slInfrastructure(string("slFileInfrastructure")) {
+	setCameraHorizontalFOV(newCameraHorizontalFOV);
+	setCameraVerticalFOV(newCameraVerticalFOV);
+	setProjectorHorizontalFOV(newProjectorHorizontalFOV);
+	setProjectorVerticalFOV(newProjectorVerticalFOV);
+	setCameraProjectorSeparation(newCameraProjectorSeparation);
+
 	this->dirname << "." << OS_SEP << dirname; /* For now only take a relative path. Should be made more robust. */
 	if(dirname[dirname.size()-1] != OS_SEP) /* Append / if necessary */
 		this->dirname << OS_SEP; 
