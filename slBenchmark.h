@@ -87,14 +87,7 @@ class slImplementation {
 		virtual void postExperimentRun() {};
 
 		//Get the width of the pattern
-                virtual double getPatternWidth();
-
-		//Get the width of the capture
-                virtual double getCaptureWidth();
-
-		//Compute the depth from a pair of x coordinates from the projection pattern and the image
-		virtual double getDisplacement(double,double);
-		virtual double getDisplacement(double,double,bool);
+		virtual double getPatternWidth() = 0;
 
 		//Get the identifier
 		string getIdentifier();
@@ -330,6 +323,9 @@ class slExperiment {
 		//Get the current infrastructure
 		slInfrastructure *getInfrastructure();
 
+		//Get the current implementation
+		slImplementation *getImplementation();
+
 		//Get the current pattern generation and capture iteration index
 		int getIterationIndex();
 
@@ -344,6 +340,10 @@ class slExperiment {
 
 		//Get the number of captures
 		int getNumberCaptures();
+
+		//Compute the depth from a pair of x coordinates from the projection pattern and the image
+		virtual double getDisplacement(double,double);
+		virtual double getDisplacement(double,double,bool);
 
 		//Get a meaningful identifier of this experiment
 		string getIdentifier();

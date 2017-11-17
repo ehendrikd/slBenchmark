@@ -24,6 +24,10 @@ bool SingleLineImplementation::hasMoreIterations() {
         return experiment->getIterationIndex() < numberColumns / interlines+1;
 }
 
+double SingleLineImplementation::getPatternWidth() {
+	return (double)numberColumns;
+}
+
 Mat SingleLineImplementation::generatePattern() {
 	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
 

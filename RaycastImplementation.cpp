@@ -1,6 +1,10 @@
 #include "RaycastImplementation.h"
 
-RaycastImplementation::RaycastImplementation(): slImplementation(string("RaycastImplementation")) {
+RaycastImplementation::RaycastImplementation(int newWidth): slImplementation(string("RaycastImplementation")), width(newWidth) {
+}
+
+double RaycastImplementation::getPatternWidth() {
+	return (double)width;
 }
 
 bool RaycastImplementation::hasMoreIterations() {
@@ -12,10 +16,9 @@ Mat RaycastImplementation::generatePattern() {
 	
 	int iterationIndex = experiment->getIterationIndex();
 
-	int projectorWidth = (int)projectorResolution.width;
 	int projectorHeight = (int)projectorResolution.height;
 
-	Mat pattern(projectorHeight, projectorWidth, CV_8UC3, Scalar(0, 0, 0));
+	Mat pattern(projectorHeight, width, CV_8UC3, Scalar(0, 0, 0));
 	return pattern;
 }
 
@@ -32,7 +35,7 @@ void RaycastImplementation::postIterationsProcess() {
 		<< "blender -b -P RaycastDepth.py -- "
 			<< blenderFilename.str() << " "
 			<< outputFilename.str() << " "
-			<< (int)projectorResolution.width << " "
+			<< width << " "
 			<< (int)projectorResolution.height;
 
 	DB("blenderCommandLine: " << blenderCommandLine.str())

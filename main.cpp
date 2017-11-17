@@ -67,7 +67,8 @@ int blenderInfrastructureExample() {
 //	slPhysicalInfrastructure physicalInfrastructure(Size(1024, 768));
 //	slFileInfrastructure fileInfrastructure("30_60_fov_45", 30, 17.142, 60, 35.983, 1);
 	slFileInfrastructure fileInfrastructureSingleLine("default_fov_sphere_cube_singleline", hFOV, vFOV, hFOV, vFOV, 1);
-	slFileInfrastructure fileInfrastructureBinary("default_fov_sphere_cube_binary", hFOV, vFOV, hFOV, vFOV, 1);
+//	slFileInfrastructure fileInfrastructureBinary("default_fov_sphere_cube_binary", hFOV, vFOV, hFOV, vFOV, 1);
+	slFileInfrastructure fileInfrastructureBinary("default_fov_sphere_cube_binary_2048x1080", hFOV, vFOV, hFOV, vFOV, 1);
 	slFileInfrastructure fileInfrastructureGrayCoded("default_fov_sphere_cube_graycoded", hFOV, vFOV, hFOV, vFOV, 1);
 	slFileInfrastructure fileInfrastructureDeBruijn("default_fov_sphere_cube_debruijn", hFOV, vFOV, hFOV, vFOV, 1);
 	
@@ -77,16 +78,17 @@ int blenderInfrastructureExample() {
 	blenderVirtualInfrastructure.setProjectorHorizontalFOV(60); 
 	blenderVirtualInfrastructure.setProjectorVerticalFOV(35.983); 
 */
-//	blenderVirtualInfrastructure.setCameraResolution(Size(2048, 100)); 
+	blenderVirtualInfrastructure.setCameraResolution(Size(2048, 1080)); 
 
 	BinaryImplementation binaryImplementation;
 	GrayCodedBinaryImplementation grayCodedBinaryImplementation;
 	PSMImplementation psmImplementation;
 	DeBruijnImplementation deBruijnImplementation;
 
-	RaycastImplementation raycastImplementation;
-	SingleLineImplementation singleLineImplementation(1920);
-//	SingleLineImplementation singleLineImplementation(2048);
+//	RaycastImplementation raycastImplementation(1920);
+//	SingleLineImplementation singleLineImplementation(1920);
+	RaycastImplementation raycastImplementation(2048);
+	SingleLineImplementation singleLineImplementation(2048);
 
 //	slSpeedDepthExperiment experiment1(&blenderVirtualInfrastructure, &binaryImplementation);
 	slSpeedDepthExperiment experiment1(&fileInfrastructureBinary, &binaryImplementation);

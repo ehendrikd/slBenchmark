@@ -24,6 +24,7 @@ class SingleLineImplementation : public slImplementation {
 		void preExperimentRun();
 		void postExperimentRun();
 		bool hasMoreIterations();
+		virtual double getPatternWidth();
 		virtual Mat generatePattern();
 		//virtual void iterationProcess();
 		//virtual void postIterationsProcess();

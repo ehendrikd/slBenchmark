@@ -50,7 +50,7 @@ slImplementation::slImplementation(string newIdentifier): identifier(newIdentifi
 void slImplementation::setIdentifier(string newIdentifier) {
 	identifier = newIdentifier;
 }
-
+/*
 double slImplementation::getPatternWidth() {
 	return experiment->getInfrastructure()->getCameraResolution().width;
 }
@@ -58,35 +58,7 @@ double slImplementation::getPatternWidth() {
 double slImplementation::getCaptureWidth() {
 	return experiment->getInfrastructure()->getProjectorResolution().width;
 }
-
-double slImplementation::getDisplacement(double x_pattern, double x_image) {
-	return getDisplacement(x_pattern, x_image, false);
-}
-double slImplementation::getDisplacement(double x_pattern, double x_image, bool temp) {
-    // Proper calculation of displacement depends on the following parameters:
-    // * depth of view of the camera and of the projector
-    // * Resolution of the camera and the projector
-    // Optionally, we need also the following parameter:
-    // * distance between the camera and the project.
-    // Setting this will give an accurate depth. Otherwise, proportions 
-    // should be correct, but not to scale.
-    double xc = x_image/getCaptureWidth() - 0.5;
-    double xp = x_pattern/getPatternWidth() - 0.5;
-    double piOn180 = M_PI/180;
-    slInfrastructure *infrastructure = experiment->getInfrastructure();
-    double gammac = infrastructure->getCameraHorizontalFOV() * piOn180; // depth of camera view in radians.
-    double gammap = infrastructure->getProjectorHorizontalFOV() * piOn180; // depths of projector view in radians.
-    double tgc = tan(gammac/2), tgp = tan(gammap/2);
-    double Delta = infrastructure->getCameraProjectorSeparation(); // Distance between camera and projector
-
-if (temp) {
-	DB("xc[" << xc << "] = x_image[" << x_image << "]/getCaptureWidth()[" << getCaptureWidth() << "] - 0.5")
-	DB("xp[" << xp << "] = x_pattern[" << x_pattern << "]/getPatternWidth()[" << getPatternWidth() << "] - 0.5")
-	DB("tgc[" << tgc << "] = tan(gammac[" << gammac << "]/2), tgp[" << tgp << "] = tan(gammap[" << gammap << "]/2")
-}
-
-    return Delta / 2 / (tgp*xp - tgc*xc);
-}
+*/
 
 //Get the identifier
 string slImplementation::getIdentifier() {
@@ -113,26 +85,32 @@ void slImplementation::iterateCorrespondences() {
 			double xCamera = solveCorrespondence(xProjector, y);
 
 			if (!isnan(xCamera) && xCamera != -1) {		
+/*				
 				bool temp = false;
 				if (y == 540 && (xProjector == 1 || xProjector == 30)) {
 					temp = true;	
 				}
+				
 				double displacement = getDisplacement(xProjector, xCamera, temp);
+*/
+				double displacement = experiment->getDisplacement(xProjector, xCamera);
 
 				if (!isinf(displacement)) {
-
+/*
 					if (y == 540 && (xProjector == 1 || xProjector == 30)) {
 						DB("displacement: " << displacement)
 					}
-					double xResultDouble = ((double)xProjector / getPatternWidth()) * cameraResolution.width;
-					int xResult = (int)xResultDouble;
-
+*/					
+//					double xResultDouble = ((double)xProjector / getPatternWidth()) * cameraResolution.width;
+//					int xResult = (int)xResultDouble;
+/*
 					if (y == 540) {
 						DB("xResult: " << xResult << " xResultDouble: " << xResultDouble)
 					}
-					
+*/					
 					//slDepthExperimentResult result((int)(((double)xProjector / getPatternWidth()) * cameraResolution.width), y, displacement);
-					slDepthExperimentResult result(xResult, y, displacement);
+					//slDepthExperimentResult result(xResult, y, displacement);
+					slDepthExperimentResult result(xProjector, y, displacement);
 					experiment->storeResult(&result);
 				}
 			}
@@ -529,6 +507,11 @@ slInfrastructure *slExperiment::getInfrastructure() {
 	return infrastructure;
 }
 
+//Get the current implementation
+slImplementation *slExperiment::getImplementation() {
+	return implementation;
+}
+
 //Get the current pattern generation and capture iteration index
 int slExperiment::getIterationIndex() {
 	return iterationIndex;
@@ -564,14 +547,43 @@ string slExperiment::getIdentifier() {
 	return identifierStream.str();
 }
 
+double slExperiment::getDisplacement(double x_pattern, double x_image) {
+	return getDisplacement(x_pattern, x_image, false);
+}
+double slExperiment::getDisplacement(double x_pattern, double x_image, bool temp) {
+    // Proper calculation of displacement depends on the following parameters:
+    // * depth of view of the camera and of the projector
+    // * Resolution of the camera and the projector
+    // Optionally, we need also the following parameter:
+    // * distance between the camera and the project.
+    // Setting this will give an accurate depth. Otherwise, proportions 
+    // should be correct, but not to scale.
+    double xc = x_image/infrastructure->getCameraResolution().width - 0.5;
+    double xp = x_pattern/implementation->getPatternWidth() - 0.5;
+    double piOn180 = M_PI/180;
+    double gammac = infrastructure->getCameraHorizontalFOV() * piOn180; // depth of camera view in radians.
+    double gammap = infrastructure->getProjectorHorizontalFOV() * piOn180; // depths of projector view in radians.
+    double tgc = tan(gammac/2), tgp = tan(gammap/2);
+    double Delta = infrastructure->getCameraProjectorSeparation(); // Distance between camera and projector
+/*
+if (temp) {
+	DB("xc[" << xc << "] = x_image[" << x_image << "]/getCaptureWidth()[" << getCaptureWidth() << "] - 0.5")
+	DB("xp[" << xp << "] = x_pattern[" << x_pattern << "]/getPatternWidth()[" << getPatternWidth() << "] - 0.5")
+	DB("tgc[" << tgc << "] = tan(gammac[" << gammac << "]/2), tgp[" << tgp << "] = tan(gammap[" << gammap << "]/2")
+}
+*/
+    return Delta / 2 / (tgp*xp - tgc*xc);
+}
+
 /*
  * slDepthExperiment
  */ 
 
 //Create a depth experiment
 slDepthExperiment::slDepthExperiment(slInfrastructure *newlInfrastructure, slImplementation *newImplementation) : slExperiment(newlInfrastructure, newImplementation), depthData(NULL) {
-	numDepthDataValues = infrastructure->getCameraResolution().width * infrastructure->getCameraResolution().height;
-	//numDepthDataValues = infrastructure->getPatternWidth() * infrastructure->getCameraResolution().height;
+	//numDepthDataValues = infrastructure->getCameraResolution().width * infrastructure->getCameraResolution().height;
+	DB("id: " << implementation->getIdentifier())
+	numDepthDataValues = implementation->getPatternWidth() * infrastructure->getCameraResolution().height;
 
 	depthDataValued = new bool[numDepthDataValues];
 	depthData = new double[numDepthDataValues];
@@ -594,7 +606,8 @@ slDepthExperiment::~slDepthExperiment() {
 void slDepthExperiment::storeResult(slExperimentResult *experimentResult) {
 	slDepthExperimentResult *depthExperimentResult = (slDepthExperimentResult *)experimentResult;
 
-	int arrayOffset = (depthExperimentResult->y * infrastructure->getCameraResolution().width) + depthExperimentResult->x;
+	//int arrayOffset = (depthExperimentResult->y * infrastructure->getCameraResolution().width) + depthExperimentResult->x;
+	int arrayOffset = (depthExperimentResult->y * implementation->getPatternWidth()) + depthExperimentResult->x;
 	
 	depthDataValued[arrayOffset] = true;
 	depthData[arrayOffset] = depthExperimentResult->z;
@@ -810,7 +823,8 @@ void sl3DReconstructor::writeXYZPointCloud(slDepthExperiment *depthExperiment) {
 
 	slInfrastructure *infrastructure = depthExperiment->getInfrastructure();
 
-	int numPatternColumns = infrastructure->getProjectorResolution().width;
+	//int numPatternColumns = infrastructure->getProjectorResolution().width;
+	int numPatternColumns = depthExperiment->getImplementation()->getPatternWidth();
 	int cameraHeight = infrastructure->getCameraResolution().height;
 
 	double halfNumPatternColumns = (double)numPatternColumns / 2.0;

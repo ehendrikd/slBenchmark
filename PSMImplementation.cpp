@@ -255,7 +255,7 @@ void PSMImplementation::makeDepth() {
 
 			if (mask[arrayOffset] == 0) {
 				double xPos = getNumberColumns()/2 - phase[arrayOffset];
-				double displacement = getDisplacement(xPos,x);
+				double displacement = experiment->getDisplacement(xPos,x);
 				slDepthExperimentResult result(x, y, displacement);
 				experiment->storeResult(&result);
 			}

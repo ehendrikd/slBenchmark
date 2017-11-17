@@ -163,7 +163,7 @@ void DeBruijnImplementation::postIterationsProcess() {
 
 			int xPos = (correspondences[i][1] + 1);
 			
-			double displacement = getDisplacement(xPos, x);
+			double displacement = experiment->getDisplacement(xPos, x);
 
 			slDepthExperimentResult result(x, y, displacement);
 			experiment->storeResult(&result);

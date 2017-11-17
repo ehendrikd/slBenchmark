@@ -6,8 +6,8 @@ BinaryImplementation::BinaryImplementation(): slImplementation(string("BinaryImp
         Black_Value = 0;
 	//White_Value = 195;
         White_Value = 255;
-        Black_Threshold = -50;
-        White_Threshold = 50;
+        Black_Threshold = -25;
+        White_Threshold = 25;
 }
 
 void BinaryImplementation::preExperimentRun() {
@@ -27,7 +27,8 @@ void BinaryImplementation::preExperimentRun() {
 // For binary implementations, the "width" of the pattern
 // is the number of columns.
 double BinaryImplementation::getPatternWidth() {
-	return (double) this->getNumberColumns();
+	//return (double) this->getNumberColumns();
+	return pow(2.0, (double)this->numberPatterns);
 }
 
 unsigned int BinaryImplementation::getNumberPatterns() {
@@ -95,14 +96,16 @@ Mat BinaryImplementation::generatePattern() {
 	Scalar colour;
 
 	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
-	int projectorWidth = (int)projectorResolution.width;
 	int projectorHeight = (int)projectorResolution.height;
 
 	generateBackground(pattern,colour);
 
-	int width = projectorWidth / numberColumns;
+	double width = projectorResolution.width / (double)numberColumns;
 
-	for (int w = width; w < projectorWidth; w += (2 * width)) {
+	if (width != abs(floor(width))) {
+	}
+
+	for (int w = width; w < projectorResolution.width; w += (2 * width)) {
 		rectangle(pattern, Point(w, 0), Point((w + width) - 1, projectorHeight), colour, FILLED);
 	}
 
