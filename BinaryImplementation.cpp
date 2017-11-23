@@ -1,8 +1,6 @@
 #include "BinaryImplementation.h"
 
-BinaryImplementation::BinaryImplementation(): slImplementation(string("BinaryImplementation")) {
-        //numberPatterns = 6;
-        numberPatterns = 8;
+BinaryImplementation::BinaryImplementation(int newNumberColumns): slImplementation(string("BinaryImplementation")), numberColumns(newNumberColumns) {
         Black_Value = 0;
 	//White_Value = 195;
         White_Value = 255;
@@ -11,7 +9,7 @@ BinaryImplementation::BinaryImplementation(): slImplementation(string("BinaryImp
 }
 
 void BinaryImplementation::preExperimentRun() {
-	numberColumns = 1;
+	currentNumberColumns = 1;
 
 	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 
@@ -27,17 +25,9 @@ void BinaryImplementation::preExperimentRun() {
 // For binary implementations, the "width" of the pattern
 // is the number of columns.
 double BinaryImplementation::getPatternWidth() {
-	//return (double) this->getNumberColumns();
-	return pow(2.0, (double)this->numberPatterns);
+	return numberColumns;
 }
 
-unsigned int BinaryImplementation::getNumberPatterns() {
-    return this->numberPatterns;
-}
-
-unsigned int BinaryImplementation::getNumberColumns() {
-    return this->numberColumns;
-}
 
 double BinaryImplementation::getBinaryCode(int xProjector, int y) {
 	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
@@ -58,8 +48,12 @@ void BinaryImplementation::postExperimentRun() {
 	delete[] binaryCode;
 }
 
+int BinaryImplementation::getNumberPatterns() {
+        return (int)(log(numberColumns) / log(2.0));
+}
+
 bool BinaryImplementation::hasMoreIterations() {
-        return experiment->getIterationIndex() < getNumberPatterns() * 2;
+        return experiment->getIterationIndex() < (2 * getNumberPatterns());
 }
 
 int BinaryImplementation::guessColour(int colourDifference) {
@@ -82,7 +76,7 @@ void BinaryImplementation::generateBackground(Mat &pattern, Scalar &colour) {
 	pattern.create(projectorHeight, projectorWidth, CV_8UC3);
 
 	if (iterationIndex % 2 == 0) {
-		numberColumns *= 2;
+		currentNumberColumns *= 2;
 		pattern.setTo(Scalar(White_Value, White_Value, White_Value));
 		colour = Scalar(Black_Value, Black_Value, Black_Value);
 	} else {
@@ -100,14 +94,24 @@ Mat BinaryImplementation::generatePattern() {
 
 	generateBackground(pattern,colour);
 
-	double width = projectorResolution.width / (double)numberColumns;
-
-	if (width != abs(floor(width))) {
-	}
+	double width = projectorResolution.width / (double)currentNumberColumns;
 
 	for (int w = width; w < projectorResolution.width; w += (2 * width)) {
 		rectangle(pattern, Point(w, 0), Point((w + width) - 1, projectorHeight), colour, FILLED);
 	}
+
+/*
+	int flooredWidth = abs(floor(width));
+
+	if (width == flooredWidth) {
+		for (int w = width; w < projectorResolution.width; w += (2 * width)) {
+			rectangle(pattern, Point(w, 0), Point((w + width) - 1, projectorHeight), colour, FILLED);
+		}
+	} else {
+		double previousWidth = projectorResolution.width / (double)(currentNumberColumns - 1);
+		int nextWidth = previousWidth - flooredWwidth;
+	}
+*/
 
 	return pattern;
 }

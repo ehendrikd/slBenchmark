@@ -89,6 +89,9 @@ class slImplementation {
 		//Get the width of the pattern
 		virtual double getPatternWidth() = 0;
 
+		//Get the pattern x offset factor, can account for uneven column widths
+		virtual double getPatternXOffsetFactor(int);
+
 		//Get the identifier
 		string getIdentifier();
 

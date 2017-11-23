@@ -1,6 +1,6 @@
 #include "GrayCodedBinaryImplementation.h"
 
-GrayCodedBinaryImplementation::GrayCodedBinaryImplementation() {
+GrayCodedBinaryImplementation::GrayCodedBinaryImplementation(int newNumberColumns) : BinaryImplementation(newNumberColumns) {
 	setIdentifier(string("GrayCodedBinaryImplementation"));
 }
 
@@ -13,11 +13,11 @@ Mat GrayCodedBinaryImplementation::generatePattern() {
 
 	generateBackground(pattern,colour);
 
-	int columnWidth = projectorWidth / numberColumns;
+	int columnWidth = projectorWidth / currentNumberColumns;
 	int doubleColumnWidth = columnWidth * 2;
 	int xPos = 0;
 
-	for (int columnIndex = 0; columnIndex < numberColumns; columnIndex++) {
+	for (int columnIndex = 0; columnIndex < currentNumberColumns; columnIndex++) {
 		if (columnIndex % 4 == 1) {
 			rectangle(pattern, Point(xPos, 0), Point((xPos + doubleColumnWidth) - 1, projectorHeight), colour, FILLED);
 		}
@@ -35,11 +35,9 @@ double GrayCodedBinaryImplementation::getBinaryCode(int xProjector, int y) {
 	if(binCode == -1) return -1;
 	return convertGrayCodeToInteger(binCode, numberColumns, getNumberPatterns());
 */
-	int columnWidth = cameraResolution.width / numberColumns;
-
 
 	for (int x = 0; x < cameraResolution.width; x++) {
-		int binaryXProjector = convertGrayCodeToInteger(binaryCode[(y * cameraResolution.width) + x], numberColumns, getNumberPatterns()) * columnWidth;
+		int binaryXProjector = convertGrayCodeToInteger(binaryCode[(y * cameraResolution.width) + x], getNumberPatterns());
 
 		if (binaryXProjector == xProjector) {
 			return (double)x;
@@ -97,7 +95,7 @@ void GrayCodedBinaryImplementation::iterationProcess() {
 }
 */
 
-int GrayCodedBinaryImplementation::convertGrayCodeToInteger(int grayCodeToConvert, int numberColumns, int numberPatterns) {
+int GrayCodedBinaryImplementation::convertGrayCodeToInteger(int grayCodeToConvert, int numberPatterns) {
 	int result = grayCodeToConvert;
 
 	for (int iteration = numberColumns; iteration > 0; iteration /= 2) {

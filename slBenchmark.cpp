@@ -50,15 +50,11 @@ slImplementation::slImplementation(string newIdentifier): identifier(newIdentifi
 void slImplementation::setIdentifier(string newIdentifier) {
 	identifier = newIdentifier;
 }
-/*
-double slImplementation::getPatternWidth() {
-	return experiment->getInfrastructure()->getCameraResolution().width;
-}
 
-double slImplementation::getCaptureWidth() {
-	return experiment->getInfrastructure()->getProjectorResolution().width;
+//Get the pattern x offset factor, can account for uneven column widths
+double slImplementation::getPatternXOffsetFactor(int xPattern) {
+	return (double)xPattern / getPatternWidth();
 }
-*/
 
 //Get the identifier
 string slImplementation::getIdentifier() {
@@ -79,38 +75,39 @@ void slImplementation::postIterationsProcess() {
 //Iterate through the captures to solve the correseponce problem
 void slImplementation::iterateCorrespondences() {
 	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
+	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
 
 	for (int y = 0; y < cameraResolution.height; y++) {
-		for (int xProjector = 0; xProjector < getPatternWidth(); xProjector++) {
-			double xCamera = solveCorrespondence(xProjector, y);
+		for (int xPattern = 0; xPattern < getPatternWidth(); xPattern++) {
+			double xCamera = solveCorrespondence(xPattern, y);
 
 			if (!isnan(xCamera) && xCamera != -1) {		
 /*				
 				bool temp = false;
-				if (y == 540 && (xProjector == 1 || xProjector == 30)) {
+				if (y == 540 && (xPattern == 1 || xPattern == 30)) {
 					temp = true;	
 				}
 				
-				double displacement = getDisplacement(xProjector, xCamera, temp);
+				double displacement = getDisplacement(xPattern, xCamera, temp);
 */
-				double displacement = experiment->getDisplacement(xProjector, xCamera);
+				double displacement = experiment->getDisplacement(xPattern, xCamera);
 
 				if (!isinf(displacement)) {
 /*
-					if (y == 540 && (xProjector == 1 || xProjector == 30)) {
+					if (y == 540 && (xPattern == 1 || xPattern == 30)) {
 						DB("displacement: " << displacement)
 					}
 */					
-//					double xResultDouble = ((double)xProjector / getPatternWidth()) * cameraResolution.width;
+//					double xResultDouble = ((double)xPattern / getPatternWidth()) * cameraResolution.width;
 //					int xResult = (int)xResultDouble;
 /*
 					if (y == 540) {
 						DB("xResult: " << xResult << " xResultDouble: " << xResultDouble)
 					}
 */					
-					//slDepthExperimentResult result((int)(((double)xProjector / getPatternWidth()) * cameraResolution.width), y, displacement);
-					//slDepthExperimentResult result(xResult, y, displacement);
-					slDepthExperimentResult result(xProjector, y, displacement);
+					//slDepthExperimentResult result((int)(((double)xPattern / getPatternWidth()) * cameraResolution.width), y, displacement);
+					//slDepthExperimentResult result(xPattern, y, displacement);
+					slDepthExperimentResult result((int)(experiment->getImplementation()->getPatternXOffsetFactor(xPattern) * projectorResolution.width), y, displacement);
 					experiment->storeResult(&result);
 				}
 			}
@@ -581,9 +578,8 @@ if (temp) {
 
 //Create a depth experiment
 slDepthExperiment::slDepthExperiment(slInfrastructure *newlInfrastructure, slImplementation *newImplementation) : slExperiment(newlInfrastructure, newImplementation), depthData(NULL) {
-	//numDepthDataValues = infrastructure->getCameraResolution().width * infrastructure->getCameraResolution().height;
-	DB("id: " << implementation->getIdentifier())
-	numDepthDataValues = implementation->getPatternWidth() * infrastructure->getCameraResolution().height;
+	numDepthDataValues = infrastructure->getProjectorResolution().width * infrastructure->getCameraResolution().height;
+	//numDepthDataValues = implementation->getPatternWidth() * infrastructure->getCameraResolution().height;
 
 	depthDataValued = new bool[numDepthDataValues];
 	depthData = new double[numDepthDataValues];
@@ -606,8 +602,8 @@ slDepthExperiment::~slDepthExperiment() {
 void slDepthExperiment::storeResult(slExperimentResult *experimentResult) {
 	slDepthExperimentResult *depthExperimentResult = (slDepthExperimentResult *)experimentResult;
 
-	//int arrayOffset = (depthExperimentResult->y * infrastructure->getCameraResolution().width) + depthExperimentResult->x;
-	int arrayOffset = (depthExperimentResult->y * implementation->getPatternWidth()) + depthExperimentResult->x;
+	int arrayOffset = (depthExperimentResult->y * infrastructure->getProjectorResolution().width) + depthExperimentResult->x;
+	//int arrayOffset = (depthExperimentResult->y * implementation->getPatternWidth()) + depthExperimentResult->x;
 	
 	depthDataValued[arrayOffset] = true;
 	depthData[arrayOffset] = depthExperimentResult->z;
@@ -766,10 +762,52 @@ void slSpeedMetric::compareExperimentAgainstReference(slExperiment *referenceExp
 void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *referenceExperiment, slExperiment *experiment) {
 	slDepthExperiment *referenceDepthExperiment = dynamic_cast<slDepthExperiment *>(referenceExperiment);
 	slDepthExperiment *depthExperiment = dynamic_cast<slDepthExperiment *>(experiment);
+/*
+	int referenceCameraHeight = referenceDepthExperiment->getInfrastructure()->getCameraResolution().height;
 
-/*	double totalDifference = 0.0;
+	if (referenceCameraHeight != depthExperiment->getInfrastructure()->getCameraResolution().height) {
+		DB("ERROR: To compare depth accuracy, both experiments need to have the same camera height.")
+		return;
+	}
 
-	for (int depthDataIndex = 0; depthDataIndex < referenceDepthExperiment->getNumDepthDataValues(); depthDataIndex++) {
+	double referencePatternWidth = referenceDepthExperiment->getImplementation()->getPatternWidth(); 
+	double patternWidth = depthExperiment->getImplementation()->getPatternWidth(); 
+
+	double totalDifference = 0.0;
+
+	int referenceWidthOffset = 0;
+
+	for (int cameraY = 0; cameraY < referenceCameraHeight; cameraY++) {
+		for (int patternX = 0; patternX < patternWidth; patternX++) {
+			referenceWidthOffset += depthExperiment->getImplementation()->getReferenceColumnWidth(cameraY, patternX);
+
+			int referenceArrayOffset = (cameraY * referencePatternWidth) + referenceWidthOffset;
+			int arrayOffset = (cameraY * patternWidth) + patternX;
+
+			if (referenceDepthExperiment->isDepthDataValued(referenceArrayOffset) && depthExperiment->isDepthDataValued(arrayOffset)) {
+				double depthDifference = referenceDepthExperiment->getDepthData(referenceArrayOffset) - depthExperiment->getDepthDataAt(arrayOffset);
+				totalDifference += depthDifference;
+			}
+		}
+	
+		referenceWidthOffset = 0;
+	}
+
+	DB("Ref: " << referenceDepthExperiment->getIdentifier() << " vs " << depthExperiment->getIdentifier() << " accuracy diff: " << totalDifference)
+*/
+	Size referenceCameraResolutuion = referenceDepthExperiment->getInfrastructure()->getCameraResolution();
+	Size referenceProjectorResolutuion = referenceDepthExperiment->getInfrastructure()->getProjectorResolution();
+	Size cameraResolutuion = depthExperiment->getInfrastructure()->getCameraResolution();
+	Size projectorResolutuion = depthExperiment->getInfrastructure()->getProjectorResolution();
+
+	if (referenceProjectorResolutuion.width != projectorResolutuion.width || referenceCameraResolutuion.height != cameraResolutuion.height) {
+		DB("ERROR: To compare depth accuracy, both experiments need to have the same projector width and camera height.")
+		return;
+	}
+
+	double totalDifference = 0.0;
+
+	for (int depthDataIndex = 0; depthDataIndex < depthExperiment->getNumDepthDataValues(); depthDataIndex++) {
 		if (referenceDepthExperiment->isDepthDataValued(depthDataIndex) && depthExperiment->isDepthDataValued(depthDataIndex)) {
 			double depthDifference = referenceDepthExperiment->getDepthData(depthDataIndex) - depthExperiment->getDepthData(depthDataIndex);
 			totalDifference += depthDifference;
@@ -777,7 +815,7 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *reference
 	}
 
 	DB("Ref: " << referenceDepthExperiment->getIdentifier() << " vs " << depthExperiment->getIdentifier() << " accuracy diff: " << totalDifference)
-*/	
+	
 }
 
 /*
@@ -819,12 +857,15 @@ void sl3DReconstructor::writeXYZPointCloud(slDepthExperiment *depthExperiment) {
 	stringstream pointCloudFileStream;
 
 	pointCloudFileStream << depthExperiment->getPath() << "point_cloud.xyz";
+
+	DB("-> sl3DReconstructor::writeXYZPointCloud() file: " << pointCloudFileStream.str().c_str())
+
 	ofstream outputFileStream(pointCloudFileStream.str().c_str());
 
 	slInfrastructure *infrastructure = depthExperiment->getInfrastructure();
 
-	//int numPatternColumns = infrastructure->getProjectorResolution().width;
-	int numPatternColumns = depthExperiment->getImplementation()->getPatternWidth();
+	int numPatternColumns = infrastructure->getProjectorResolution().width;
+	//int numPatternColumns = depthExperiment->getImplementation()->getPatternWidth();
 	int cameraHeight = infrastructure->getCameraResolution().height;
 
 	double halfNumPatternColumns = (double)numPatternColumns / 2.0;
@@ -843,12 +884,7 @@ void sl3DReconstructor::writeXYZPointCloud(slDepthExperiment *depthExperiment) {
 				double zCoord = depthExperiment->getDepthData(arrayOffset);
 				double xCoord = ((double)x - halfNumPatternColumns) * zCoord * (2.0 * halfProjectorHorizontalFOVRadians / numPatternColumns);
 				double yCoord = ((double)y - halfCameraHeight) * zCoord * (2.0 * halfCameraVerticalFOVRadians / cameraHeight);
-/*		
-				if (x == 900 && y == 312) {
-					DB("double xCoord[" << xCoord << "] = ((double)x[" << x << "] - halfNumPatternColumns[" << halfNumPatternColumns << "]) * zCoord[" << zCoord << "] * (2.0 * halfProjectorHorizontalFOVRadians[" << halfProjectorHorizontalFOVRadians << "] / numPatternColumns[" << numPatternColumns << ");")
-					DB("double yCoord[" << yCoord << "] = ((double)y[" << y << "] - halfCameraHeight[" << halfCameraHeight << "]) * zCoord[" << zCoord <<"] * (2.0 * halfCameraVerticalFOVRadians[" << halfCameraVerticalFOVRadians << "] / cameraHeight[" << cameraHeight << "]);")
-				}
-*/
+
 				outputFileStream << xCoord << " " << yCoord << " " << zCoord << endl;
 				//outputFileStream << "[x: " << x << " y: " << y << "] " << xCoord << " " << yCoord << " " << zCoord << endl;
 			}
@@ -856,4 +892,6 @@ void sl3DReconstructor::writeXYZPointCloud(slDepthExperiment *depthExperiment) {
 	}
 
 	outputFileStream.close();
+	
+	DB("<- sl3DReconstructor::writeXYZPointCloud()")
 }

@@ -5,13 +5,13 @@
 
 class GrayCodedBinaryImplementation : public BinaryImplementation {
 	public:
-		GrayCodedBinaryImplementation();
+		GrayCodedBinaryImplementation(int);
 		virtual ~GrayCodedBinaryImplementation() {};
 		virtual Mat generatePattern();
 		//virtual void iterationProcess();
 		//virtual void postIterationsProcess();
 		virtual double getBinaryCode(int, int);
-		int convertGrayCodeToInteger(int, int, int);
+		int convertGrayCodeToInteger(int, int);
 };
 
 #endif //GRAY_CODED_BINARY_IMPLEMENTATION_H

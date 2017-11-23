@@ -9,7 +9,7 @@ enum backgroundType {White,Black};
 
 class BinaryImplementation : public slImplementation {
 	public:
-		BinaryImplementation();
+		BinaryImplementation(int);
 		virtual ~BinaryImplementation() {};
 		void preExperimentRun();
 		void postExperimentRun();
@@ -19,9 +19,8 @@ class BinaryImplementation : public slImplementation {
 		virtual void iterationProcess();
 		//virtual void postIterationsProcess();
 		//Getters and Setters
-		unsigned int getNumberPatterns();
-		unsigned int getNumberColumns();
 		virtual double getBinaryCode(int, int);
+		int getNumberPatterns();
 
                 // The next function determine whether a colour can be
                 // considered to be white or black. This is determined by 
@@ -37,7 +36,7 @@ class BinaryImplementation : public slImplementation {
 		virtual double solveCorrespondence(int, int);
 
 	protected:
-		unsigned int numberPatterns;
+		unsigned int currentNumberColumns;
 		unsigned int numberColumns;
 		// The patterns for are bicolour, typically
 		// black and white. In reality, they can be
