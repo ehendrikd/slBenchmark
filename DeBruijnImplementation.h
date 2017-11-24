@@ -9,8 +9,6 @@
 #define DEBRUIJN_ALPHA 0.2
 #define DEBRUIJN_BETA 0.8
 
-#define DEBRUIJN_NUM_EDGES 124
-
 #define DEBRUIJN_THRESHOLD 0
 
 using namespace cv;
@@ -23,8 +21,6 @@ typedef struct {
 
 class DeBruijnImplementation : public slImplementation {
 	public:
-		DeBruijnImplementation();
-		// Add a constructor to allow for a different number of edges
 		DeBruijnImplementation(unsigned int);
 		virtual ~DeBruijnImplementation() {};
 		void preExperimentRun();

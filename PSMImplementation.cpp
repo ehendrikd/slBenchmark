@@ -255,6 +255,9 @@ void PSMImplementation::makeDepth() {
 
 			if (mask[arrayOffset] == 0) {
 				double xPos = getNumberColumns()/2 - phase[arrayOffset];
+				if (y == 0) {
+					DB("xPattern: " << xPos << " xCamera: " << x)
+				}
 				double displacement = experiment->getDisplacement(xPos,x);
 				slDepthExperimentResult result(x, y, displacement);
 				experiment->storeResult(&result);

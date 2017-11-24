@@ -81,32 +81,15 @@ void slImplementation::iterateCorrespondences() {
 		for (int xPattern = 0; xPattern < getPatternWidth(); xPattern++) {
 			double xCamera = solveCorrespondence(xPattern, y);
 
-			if (!isnan(xCamera) && xCamera != -1) {		
+			if (!isnan(xCamera) && xCamera != -1) {					
 /*				
-				bool temp = false;
-				if (y == 540 && (xPattern == 1 || xPattern == 30)) {
-					temp = true;	
+				if (y == 0) {
+					DB("xPattern: " << xPattern << " xCamera: " << xCamera)
 				}
-				
-				double displacement = getDisplacement(xPattern, xCamera, temp);
 */
 				double displacement = experiment->getDisplacement(xPattern, xCamera);
 
 				if (!isinf(displacement)) {
-/*
-					if (y == 540 && (xPattern == 1 || xPattern == 30)) {
-						DB("displacement: " << displacement)
-					}
-*/					
-//					double xResultDouble = ((double)xPattern / getPatternWidth()) * cameraResolution.width;
-//					int xResult = (int)xResultDouble;
-/*
-					if (y == 540) {
-						DB("xResult: " << xResult << " xResultDouble: " << xResultDouble)
-					}
-*/					
-					//slDepthExperimentResult result((int)(((double)xPattern / getPatternWidth()) * cameraResolution.width), y, displacement);
-					//slDepthExperimentResult result(xPattern, y, displacement);
 					slDepthExperimentResult result((int)(experiment->getImplementation()->getPatternXOffsetFactor(xPattern) * projectorResolution.width), y, displacement);
 					experiment->storeResult(&result);
 				}

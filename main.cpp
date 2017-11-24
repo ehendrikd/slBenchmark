@@ -71,6 +71,7 @@ int blenderInfrastructureExample() {
 //	slFileInfrastructure fileInfrastructureBinary("default_fov_sphere_cube_binary_2048x1080", hFOV, vFOV, hFOV, vFOV, 1);
 	slFileInfrastructure fileInfrastructureGrayCoded("default_fov_sphere_cube_graycoded", hFOV, vFOV, hFOV, vFOV, 1);
 	slFileInfrastructure fileInfrastructureDeBruijn("default_fov_sphere_cube_debruijn", hFOV, vFOV, hFOV, vFOV, 1);
+	slFileInfrastructure fileInfrastructurePSM("default_fov_sphere_cube_psm", hFOV, vFOV, hFOV, vFOV, 1);
 	
 /*	
 	blenderVirtualInfrastructure.setCameraHorizontalFOV(30); 
@@ -87,7 +88,7 @@ int blenderInfrastructureExample() {
 	BinaryImplementation binaryImplementation(128);
 	GrayCodedBinaryImplementation grayCodedBinaryImplementation(128);
 	PSMImplementation psmImplementation;
-	DeBruijnImplementation deBruijnImplementation;
+	DeBruijnImplementation deBruijnImplementation(128);
 
 	RaycastImplementation raycastImplementation(1920);
 	SingleLineImplementation singleLineImplementation(1920);
@@ -98,7 +99,8 @@ int blenderInfrastructureExample() {
 	slSpeedDepthExperiment experiment1(&fileInfrastructureBinary, &binaryImplementation);
 //	slSpeedDepthExperiment experiment2(&blenderVirtualInfrastructure, &grayCodedBinaryImplementation);
 	slSpeedDepthExperiment experiment2(&fileInfrastructureGrayCoded, &grayCodedBinaryImplementation);
-	slSpeedDepthExperiment experiment3(&blenderVirtualInfrastructure, &psmImplementation);
+//	slSpeedDepthExperiment experiment3(&blenderVirtualInfrastructure, &psmImplementation);
+	slSpeedDepthExperiment experiment3(&fileInfrastructurePSM, &psmImplementation);
 //	slSpeedDepthExperiment experiment4(&blenderVirtualInfrastructure, &deBruijnImplementation);
 	slSpeedDepthExperiment experiment4(&fileInfrastructureDeBruijn, &deBruijnImplementation);
 
@@ -113,21 +115,21 @@ int blenderInfrastructureExample() {
 	experiment1.run();
 	experiment2.run();
 //	experiment3.run();
-//	experiment4.run();
+	experiment4.run();
 //	experiment5.run();
 //	experiment6.run();
 	experiment7.run();
-//	experiment8.run();
+	experiment8.run();
 
 	slBenchmark benchmark(&experiment7);
 
 	benchmark.addExperiment(&experiment1);
 	benchmark.addExperiment(&experiment2);
 //	benchmark.addExperiment(&experiment3);
-//	benchmark.addExperiment(&experiment4);
+	benchmark.addExperiment(&experiment4);
 //	benchmark.addExperiment(&experiment5);
 //	benchmark.addExperiment(&experiment6);
-//	benchmark.addExperiment(&experiment8);
+	benchmark.addExperiment(&experiment8);
 
 	benchmark.addMetric(new slSpeedMetric());
 	benchmark.addMetric(new slAccuracyMetric());
@@ -138,9 +140,9 @@ int blenderInfrastructureExample() {
 	sl3DReconstructor::writeXYZPointCloud(&experiment1);
 	sl3DReconstructor::writeXYZPointCloud(&experiment2);
 //	sl3DReconstructor::writeXYZPointCloud(&experiment3);
-//	sl3DReconstructor::writeXYZPointCloud(&experiment4);
+	sl3DReconstructor::writeXYZPointCloud(&experiment4);
 	sl3DReconstructor::writeXYZPointCloud(&experiment7);
-//	sl3DReconstructor::writeXYZPointCloud(&experiment8);
+	sl3DReconstructor::writeXYZPointCloud(&experiment8);
 
 	return 0;
 }

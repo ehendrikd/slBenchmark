@@ -1,10 +1,8 @@
 #include "DeBruijnImplementation.h"
 
-DeBruijnImplementation::DeBruijnImplementation(): slImplementation(string("DeBruijnImplementation")),numberEdges(124) {
+DeBruijnImplementation::DeBruijnImplementation(unsigned int newNumColumns): slImplementation(string("DeBruijnImplementation")),numberEdges(newNumColumns - 1) {
 }
 
-DeBruijnImplementation::DeBruijnImplementation(unsigned int numEdges): slImplementation(string("DeBruijnImplementation")),numberEdges(numEdges) {
-}
 void DeBruijnImplementation::preExperimentRun() {
 	slInfrastructure *infrastructure = experiment->getInfrastructure();
 
@@ -39,6 +37,8 @@ Mat DeBruijnImplementation::generatePattern() {
 	int screenHeight = (int)projectorResolution.height;
 
 	float columnWidth = (float)screenWidth / getNumberColumns();
+
+	DB("columnWidth: " << columnWidth)
 
 	int size = DEBRUIJN_K * DEBRUIJN_N;
 	vector<int> a(size), sequence;
@@ -88,6 +88,7 @@ Mat DeBruijnImplementation::generatePattern() {
 void DeBruijnImplementation::postIterationsProcess() {
 	slInfrastructure *infrastructure = experiment->getInfrastructure();
 	Size cameraResolution = infrastructure->getCameraResolution();
+	Size projectorResolution = infrastructure->getProjectorResolution();
 	Mat captureMat = experiment->getLastCapture();
 
 	float columnWidth = (float)cameraResolution.width / (float)getNumberColumns();
@@ -162,10 +163,9 @@ void DeBruijnImplementation::postIterationsProcess() {
 			int x = correspondence[newX];
 
 			int xPos = (correspondences[i][1] + 1);
-			
-			double displacement = experiment->getDisplacement(xPos, x);
 
-			slDepthExperimentResult result(x, y, displacement);
+			double displacement = experiment->getDisplacement(xPos, x);
+			slDepthExperimentResult result((int)(experiment->getImplementation()->getPatternXOffsetFactor(xPos) * projectorResolution.width), y, displacement);
 			experiment->storeResult(&result);
     		}
 
