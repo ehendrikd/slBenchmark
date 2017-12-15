@@ -78,7 +78,7 @@ if __name__ == "__main__":
 	projector.use_square = True
 	projector.show_cone = True
 	projector.energy = getNumber(projectorObjectJson['intensity'])
-	projector.falloff_type = 'CONSTANT'
+	#projector.falloff_type = 'CONSTANT'
 	projector.spot_blend = 0
 
 	image = bpy.data.images.load(patternPath)

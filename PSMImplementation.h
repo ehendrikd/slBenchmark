@@ -8,7 +8,9 @@
 #define PSM_TWO_PI 6.2831853
 #define PSM_TWO_PI_ON_3 PSM_TWO_PI / 3.0
 
-#define PSM_RENDER_DETAIL 7
+#define PSM_RENDER_DETAIL 1
+
+#define X_PROJECTOR_TOLERANCE 0.25
 
 using namespace cv;
 
@@ -60,9 +62,10 @@ class PSMImplementation : public slImplementation {
 
 		float *phase;
 		float *dist;
+		//bool *mask;
+		//bool *ready;
 		int *mask;
 		int *ready;
-		int *names;
 };
 
 #endif //PSM_IMPLEMENTATION_H

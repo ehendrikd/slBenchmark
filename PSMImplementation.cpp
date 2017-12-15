@@ -14,9 +14,10 @@ void PSMImplementation::preExperimentRun() {
 
 	phase = new float[arraySize];
 	dist = new float[arraySize];
+	//mask = new bool[arraySize];
+	//ready = new bool[arraySize];
 	mask = new int[arraySize];
 	ready = new int[arraySize];
-	names = new int[arraySize];
 }
 
 void PSMImplementation::postExperimentRun() {
@@ -26,7 +27,6 @@ void PSMImplementation::postExperimentRun() {
 	delete[] dist;
 	delete[] mask;
 	delete[] ready;
-	delete[] names;
 }
 
 bool PSMImplementation::hasMoreIterations() {
@@ -53,7 +53,8 @@ Mat PSMImplementation::generatePattern() {
 
 	int columnWidth = screenWidth / getNumberColumns();
 
-	float offset = -1.6;
+//	float offset = -1.6;
+	float offset = -2.075;
 	
 	Mat pattern(screenHeight, screenWidth, CV_8UC3);
 
@@ -62,6 +63,7 @@ Mat PSMImplementation::generatePattern() {
 
 		for (int x = columnX; x < (columnX + columnWidth); x++) {
 			float theta = ((PSM_TWO_PI / columnWidth) * x) + offset;
+//			float theta = ((PSM_TWO_PI / columnWidth) * x);
 
 			double phaseIntensity;
 
@@ -141,9 +143,13 @@ void PSMImplementation::phaseWrap() {
 			int arrayOffset = (y * cameraResolution.width) + x;
 
 			if (phaseRange <= PSM_NOISE_THRESHOLD) {
+				//mask[arrayOffset] = false; //1
+				//ready[arrayOffset] = true; //0
 				mask[arrayOffset] = 1;
 				ready[arrayOffset] = 0;
 			} else {
+				//mask[arrayOffset] = true; //0
+				//ready[arrayOffset] = false; //1
 				mask[arrayOffset] = 0;
 				ready[arrayOffset] = 1;
 			}
@@ -158,6 +164,7 @@ void PSMImplementation::phaseWrap() {
 		for (int x = 1; x < cameraResolution.width - 1; x++) {
 			int arrayOffset = (y * cameraResolution.width) + x;
 
+			//if (mask[arrayOffset]) { // == 0
 			if (mask[arrayOffset] == 0) {
 				dist[arrayOffset] = (
 					diff(phase[arrayOffset], phase[arrayOffset - 1]) +
@@ -178,7 +185,8 @@ void PSMImplementation::phaseWrap() {
 void PSMImplementation::phaseUnwrap() {
 	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 
-	int startX = cameraResolution.width / 2;
+	//int startX = cameraResolution.width / 2;
+	int startX = (cameraResolution.width / 2) + 225;
 	int startY = cameraResolution.height / 2;
 
 	struct WrappedPixel firstWrappedPixel;
@@ -199,8 +207,10 @@ void PSMImplementation::phaseUnwrap() {
 
 		int arrayOffset = (y * cameraResolution.width) + x;
 
+		//if (!ready[arrayOffset]) { // == 1
 		if (ready[arrayOffset] == 1) {
 			phase[arrayOffset] = currentPixel.phase;
+			//ready[arrayOffset] = true; // 0
 			ready[arrayOffset] = 0;
 
 			if (y > 0) {
@@ -224,6 +234,7 @@ void PSMImplementation::phaseUnwrap(int x, int y, float unwrapDist, float unwrap
 
 	int arrayOffset = (y * cameraResolution.width) + x;
 
+	//if (ready[arrayOffset]) { // == 1
 	if (ready[arrayOffset] == 1) {
 		float diff = phase[arrayOffset] - (unwrapPhase - (int)unwrapPhase);
 
@@ -248,19 +259,44 @@ void PSMImplementation::phaseUnwrap(int x, int y, float unwrapDist, float unwrap
 void PSMImplementation::makeDepth() {
 	slInfrastructure *infrastructure = experiment->getInfrastructure();
 	Size cameraResolution = infrastructure->getCameraResolution();
-
-	for (int y = 0; y < cameraResolution.height; y += PSM_RENDER_DETAIL) {
+	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
+	
+	for (int y = 0; y < cameraResolution.height; y++) {
 		for (int x = 0; x < cameraResolution.width; x += PSM_RENDER_DETAIL) {
 			int arrayOffset = (y * cameraResolution.width) + x;
 
+			//if (mask[arrayOffset]) { // == 0
 			if (mask[arrayOffset] == 0) {
 				double xPos = getNumberColumns()/2 - phase[arrayOffset];
-				if (y == 0) {
-					DB("xPattern: " << xPos << " xCamera: " << x)
+				double xProjectorDouble = experiment->getImplementation()->getPatternXOffsetFactor(xPos) * projectorResolution.width;
+				int xProjector = (int)round(xProjectorDouble);
+/*
+				int xProjector = abs(floor(xProjectorDouble));
+				double remainder = xProjectorDouble - xProjector;
+
+				bool withinBounds = false;
+	
+				if (remainder >= (1.0 - X_PROJECTOR_TOLERANCE)) {
+					xProjector++;
+					withinBounds = true;
+				} else if (remainder <= X_PROJECTOR_TOLERANCE) {
+					withinBounds = true;
 				}
-				double displacement = experiment->getDisplacement(xPos,x);
-				slDepthExperimentResult result(x, y, displacement);
-				experiment->storeResult(&result);
+
+				if (withinBounds) {
+*/				
+					double displacement = experiment->getDisplacement(xPos, x);
+
+					if (y == 0) {
+						DB("getNumberColumns()/2: " << (getNumberColumns()/2) << " phase[arrayOffset]: " << phase[arrayOffset])
+						DB("xPattern: " << xPos <<" xCamera: " << x)
+						DB("xProjectorDouble: " << xProjectorDouble <<" xProjector: " << xProjector << " displacement: " << displacement)
+					}
+
+					//slDepthExperimentResult result(x, y, displacement);
+					slDepthExperimentResult result(xProjector, y, displacement);
+					experiment->storeResult(&result);
+//				}
 			}
 		}
 	}

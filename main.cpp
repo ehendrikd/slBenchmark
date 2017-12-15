@@ -68,10 +68,12 @@ int blenderInfrastructureExample() {
 //	slFileInfrastructure fileInfrastructure("30_60_fov_45", 30, 17.142, 60, 35.983, 1);
 	slFileInfrastructure fileInfrastructureSingleLine("default_fov_sphere_cube_singleline", hFOV, vFOV, hFOV, vFOV, 1);
 	slFileInfrastructure fileInfrastructureBinary("default_fov_sphere_cube_binary", hFOV, vFOV, hFOV, vFOV, 1);
+//	slFileInfrastructure fileInfrastructureBinary("default_fov_plane_binary", hFOV, vFOV, hFOV, vFOV, 1);
 //	slFileInfrastructure fileInfrastructureBinary("default_fov_sphere_cube_binary_2048x1080", hFOV, vFOV, hFOV, vFOV, 1);
 	slFileInfrastructure fileInfrastructureGrayCoded("default_fov_sphere_cube_graycoded", hFOV, vFOV, hFOV, vFOV, 1);
 	slFileInfrastructure fileInfrastructureDeBruijn("default_fov_sphere_cube_debruijn", hFOV, vFOV, hFOV, vFOV, 1);
-	slFileInfrastructure fileInfrastructurePSM("default_fov_sphere_cube_psm", hFOV, vFOV, hFOV, vFOV, 1);
+//	slFileInfrastructure fileInfrastructurePSM("default_fov_sphere_cube_psm", hFOV, vFOV, hFOV, vFOV, 1);
+	slFileInfrastructure fileInfrastructurePSM("default_fov_plane_psm", hFOV, vFOV, hFOV, vFOV, 1);
 	
 /*	
 	blenderVirtualInfrastructure.setCameraHorizontalFOV(30); 
@@ -100,7 +102,7 @@ int blenderInfrastructureExample() {
 //	slSpeedDepthExperiment experiment2(&blenderVirtualInfrastructure, &grayCodedBinaryImplementation);
 	slSpeedDepthExperiment experiment2(&fileInfrastructureGrayCoded, &grayCodedBinaryImplementation);
 //	slSpeedDepthExperiment experiment3(&blenderVirtualInfrastructure, &psmImplementation);
-	slSpeedDepthExperiment experiment3(&fileInfrastructurePSM, &psmImplementation);
+//	slSpeedDepthExperiment experiment3(&fileInfrastructurePSM, &psmImplementation);
 //	slSpeedDepthExperiment experiment4(&blenderVirtualInfrastructure, &deBruijnImplementation);
 	slSpeedDepthExperiment experiment4(&fileInfrastructureDeBruijn, &deBruijnImplementation);
 
@@ -120,7 +122,7 @@ int blenderInfrastructureExample() {
 //	experiment6.run();
 	experiment7.run();
 	experiment8.run();
-
+	
 	slBenchmark benchmark(&experiment7);
 
 	benchmark.addExperiment(&experiment1);
@@ -131,9 +133,9 @@ int blenderInfrastructureExample() {
 //	benchmark.addExperiment(&experiment6);
 	benchmark.addExperiment(&experiment8);
 
-	benchmark.addMetric(new slSpeedMetric());
+//	benchmark.addMetric(new slSpeedMetric());
 	benchmark.addMetric(new slAccuracyMetric());
-	benchmark.addMetric(new slResolutionMetric());
+//	benchmark.addMetric(new slResolutionMetric());
 
 	benchmark.compareExperiments();
 

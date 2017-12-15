@@ -4,8 +4,8 @@ BinaryImplementation::BinaryImplementation(int newNumberColumns): slImplementati
         Black_Value = 0;
 	//White_Value = 195;
         White_Value = 255;
-        Black_Threshold = -25;
-        White_Threshold = 25;
+        Black_Threshold = -50;
+        White_Threshold = 50;
 }
 
 void BinaryImplementation::preExperimentRun() {

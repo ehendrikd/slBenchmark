@@ -23,7 +23,6 @@ debug: CPPFLAGS += -g
 debug: slBenchmark
 
 slBenchmark: $(LIBOBJS) main.cpp
-	echo $(LIBOBJS)
 	g++ $(LFLAGS) $(LIBOBJS) main.cpp -o slBenchmark
 
 $(LIBOBJS):%.o: %.cpp %.h

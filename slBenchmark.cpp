@@ -52,8 +52,8 @@ void slImplementation::setIdentifier(string newIdentifier) {
 }
 
 //Get the pattern x offset factor, can account for uneven column widths
-double slImplementation::getPatternXOffsetFactor(int xPattern) {
-	return (double)xPattern / getPatternWidth();
+double slImplementation::getPatternXOffsetFactor(double xPattern) {
+	return xPattern / getPatternWidth();
 }
 
 //Get the identifier
@@ -82,15 +82,16 @@ void slImplementation::iterateCorrespondences() {
 			double xCamera = solveCorrespondence(xPattern, y);
 
 			if (!isnan(xCamera) && xCamera != -1) {					
-/*				
+				double displacement = experiment->getDisplacement(xPattern, xCamera);
+				int xProjector = (int)(experiment->getImplementation()->getPatternXOffsetFactor(xPattern) * projectorResolution.width);
+
 				if (y == 0) {
 					DB("xPattern: " << xPattern << " xCamera: " << xCamera)
+					DB("xProjector: " << xProjector << " displacement: " << displacement)
 				}
-*/
-				double displacement = experiment->getDisplacement(xPattern, xCamera);
 
 				if (!isinf(displacement)) {
-					slDepthExperimentResult result((int)(experiment->getImplementation()->getPatternXOffsetFactor(xPattern) * projectorResolution.width), y, displacement);
+					slDepthExperimentResult result(xProjector, y, displacement);
 					experiment->storeResult(&result);
 				}
 			}
@@ -788,16 +789,54 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *reference
 		return;
 	}
 
-	double totalDifference = 0.0;
+	double *depthDifferences = new double[depthExperiment->getNumDepthDataValues()];
+	double maxDepthDifference = 0;
 
 	for (int depthDataIndex = 0; depthDataIndex < depthExperiment->getNumDepthDataValues(); depthDataIndex++) {
 		if (referenceDepthExperiment->isDepthDataValued(depthDataIndex) && depthExperiment->isDepthDataValued(depthDataIndex)) {
-			double depthDifference = referenceDepthExperiment->getDepthData(depthDataIndex) - depthExperiment->getDepthData(depthDataIndex);
-			totalDifference += depthDifference;
+			depthDifferences[depthDataIndex] = referenceDepthExperiment->getDepthData(depthDataIndex) - depthExperiment->getDepthData(depthDataIndex);
+
+			if (depthDifferences[depthDataIndex] < 0) {
+				depthDifferences[depthDataIndex] = -depthDifferences[depthDataIndex];
+			}
+
+			if (depthDifferences[depthDataIndex] > maxDepthDifference) {
+				maxDepthDifference = depthDifferences[depthDataIndex];
+			}	
 		}
 	}
 
-	DB("Ref: " << referenceDepthExperiment->getIdentifier() << " vs " << depthExperiment->getIdentifier() << " accuracy diff: " << totalDifference)
+	double binSize = 0.001;
+	int histogramSize = (int)ceil(maxDepthDifference / binSize);
+	int histogram[histogramSize];
+
+	for (int histogramIndex = 0; histogramIndex < histogramSize; histogramIndex++) {
+		histogram[histogramIndex] = 0;
+	}
+	DB("histogramSize: " << histogramSize)
+
+	for (int depthDataIndex = 0; depthDataIndex < depthExperiment->getNumDepthDataValues(); depthDataIndex++) {
+		if (referenceDepthExperiment->isDepthDataValued(depthDataIndex) && depthExperiment->isDepthDataValued(depthDataIndex)) {
+			double depthDifference = depthDifferences[depthDataIndex] / binSize;
+
+			histogram[(int)floor(depthDifference)]++;
+		}
+	}
+
+	delete [] depthDifferences;
+
+	stringstream historgramFileStream;
+	historgramFileStream << slExperiment::getSessionPath() << referenceDepthExperiment->getIdentifier() << "_vs_" << depthExperiment->getIdentifier() << "_accuracy_histogram.csv";
+
+	ofstream outputFileStream(historgramFileStream.str().c_str());
+
+	for (int histogramIndex = 0; histogramIndex < histogramSize; histogramIndex++) {
+		outputFileStream << histogram[histogramIndex] << endl;
+	}
+
+	outputFileStream.close();
+
+	DB("Accuracy histogram file: " << historgramFileStream.str().c_str())
 	
 }
 
