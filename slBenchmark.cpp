@@ -829,9 +829,14 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *reference
 	historgramFileStream << slExperiment::getSessionPath() << referenceDepthExperiment->getIdentifier() << "_vs_" << depthExperiment->getIdentifier() << "_accuracy_histogram.csv";
 
 	ofstream outputFileStream(historgramFileStream.str().c_str());
+	
+	int totalHistograms = 0;
+	for (int histogramIndex = 0; histogramIndex < histogramSize; histogramIndex++) {
+		totalHistograms += histogram[histogramIndex];
+	}
 
 	for (int histogramIndex = 0; histogramIndex < histogramSize; histogramIndex++) {
-		outputFileStream << histogram[histogramIndex] << endl;
+		outputFileStream << ((double)histogram[histogramIndex] / (double)totalHistograms) << endl;
 	}
 
 	outputFileStream.close();

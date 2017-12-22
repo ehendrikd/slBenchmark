@@ -73,7 +73,7 @@ int blenderInfrastructureExample() {
 	slFileInfrastructure fileInfrastructureGrayCoded("default_fov_sphere_cube_graycoded", hFOV, vFOV, hFOV, vFOV, 1);
 	slFileInfrastructure fileInfrastructureDeBruijn("default_fov_sphere_cube_debruijn", hFOV, vFOV, hFOV, vFOV, 1);
 //	slFileInfrastructure fileInfrastructurePSM("default_fov_sphere_cube_psm", hFOV, vFOV, hFOV, vFOV, 1);
-	slFileInfrastructure fileInfrastructurePSM("default_fov_plane_psm", hFOV, vFOV, hFOV, vFOV, 1);
+//	slFileInfrastructure fileInfrastructurePSM("default_fov_plane_psm", hFOV, vFOV, hFOV, vFOV, 1);
 	
 /*	
 	blenderVirtualInfrastructure.setCameraHorizontalFOV(30); 
@@ -89,7 +89,7 @@ int blenderInfrastructureExample() {
 */
 	BinaryImplementation binaryImplementation(128);
 	GrayCodedBinaryImplementation grayCodedBinaryImplementation(128);
-	PSMImplementation psmImplementation;
+//	PSMImplementation psmImplementation;
 	DeBruijnImplementation deBruijnImplementation(128);
 
 	RaycastImplementation raycastImplementation(1920);
