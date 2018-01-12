@@ -83,7 +83,8 @@ if __name__ == "__main__":
 
 	image = bpy.data.images.load(patternPath)
 	texture = bpy.data.textures.new('ColorTex', type = 'IMAGE')
-	texture.image = image    
+	texture.image = image   
+	texture.extension = 'CLIP' 
 	projector.active_texture = texture
 	projector.texture_slots[0].texture_coords = 'VIEW'
 

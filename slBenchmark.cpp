@@ -85,9 +85,14 @@ void slImplementation::iterateCorrespondences() {
 				double displacement = experiment->getDisplacement(xPattern, xCamera);
 				int xProjector = (int)(experiment->getImplementation()->getPatternXOffsetFactor(xPattern) * projectorResolution.width);
 
+				if (displacement == 0) {
+					DB("displacement=0 xPattern: " << xPattern << " xCamera: " << xCamera)
+				}
+
+
 				if (y == 0) {
-					DB("xPattern: " << xPattern << " xCamera: " << xCamera)
-					DB("xProjector: " << xProjector << " displacement: " << displacement)
+//					DB("xPattern: " << xPattern << " xCamera: " << xCamera)
+//					DB("xProjector: " << xProjector << " displacement: " << displacement)
 				}
 
 				if (!isinf(displacement)) {
@@ -553,6 +558,10 @@ if (temp) {
 	DB("tgc[" << tgc << "] = tan(gammac[" << gammac << "]/2), tgp[" << tgp << "] = tan(gammap[" << gammap << "]/2")
 }
 */
+	double displacement = Delta / 2 / (tgp*xp - tgc*xc);
+	if (displacement == 0) {
+		DB("x_pattern: " << x_pattern << " x_image: " << x_image)
+	}
     return Delta / 2 / (tgp*xp - tgc*xc);
 }
 
@@ -909,6 +918,9 @@ void sl3DReconstructor::writeXYZPointCloud(slDepthExperiment *depthExperiment) {
 
 			if (depthExperiment->isDepthDataValued(arrayOffset)) {
 				double zCoord = depthExperiment->getDepthData(arrayOffset);
+				if (zCoord == 0) {
+					DB("x: " << x << " y: " << y << " z: " << zCoord)
+				}
 				double xCoord = ((double)x - halfNumPatternColumns) * zCoord * (2.0 * halfProjectorHorizontalFOVRadians / numPatternColumns);
 				double yCoord = ((double)y - halfCameraHeight) * zCoord * (2.0 * halfCameraVerticalFOVRadians / cameraHeight);
 
