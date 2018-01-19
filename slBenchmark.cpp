@@ -81,9 +81,13 @@ void slImplementation::iterateCorrespondences() {
 		for (int xPattern = 0; xPattern < getPatternWidth(); xPattern++) {
 			double xCamera = solveCorrespondence(xPattern, y);
 
+				int xProjector = (int)(experiment->getImplementation()->getPatternXOffsetFactor(xPattern) * projectorResolution.width);
+				if (xProjector == 494 && y <= 7) {
+					DB("xPattern: " << xPattern << "y: " << y << " xCamera: " << xCamera)
+				}
 			if (!isnan(xCamera) && xCamera != -1) {					
 				double displacement = experiment->getDisplacement(xPattern, xCamera);
-				int xProjector = (int)(experiment->getImplementation()->getPatternXOffsetFactor(xPattern) * projectorResolution.width);
+				//int xProjector = (int)(experiment->getImplementation()->getPatternXOffsetFactor(xPattern) * projectorResolution.width);
 
 				if (displacement == 0) {
 					DB("displacement=0 xPattern: " << xPattern << " xCamera: " << xCamera)
@@ -704,12 +708,11 @@ slBenchmark::slBenchmark(slExperiment *newReferenceExperiment) : referenceExperi
 
 //Clean up
 slBenchmark::~slBenchmark() {
-	for (vector<slMetric *>::iterator metric = metrics->begin(); metric != metrics->end(); ++metric) {
-		delete (*metric);
-	}
+	metrics->clear();
 
 	delete metrics;
 	delete experiments;
+	
 }
 
 //Add a metric to this benchmark
