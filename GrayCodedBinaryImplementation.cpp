@@ -37,10 +37,14 @@ double GrayCodedBinaryImplementation::getBinaryCode(int xProjector, int y) {
 */
 
 	for (int x = 0; x < cameraResolution.width; x++) {
-		int binaryXProjector = convertGrayCodeToInteger(binaryCode[(y * cameraResolution.width) + x], getNumberPatterns());
+		int currentBinaryCode = binaryCode[(y * cameraResolution.width) + x];
 
-		if (binaryXProjector == xProjector) {
-			return (double)x;
+		if (currentBinaryCode != -1) {
+			int binaryXProjector = convertGrayCodeToInteger(currentBinaryCode, getNumberPatterns());
+
+			if (binaryXProjector == xProjector) {
+				return (double)x;
+			}
 		}
 	}
 

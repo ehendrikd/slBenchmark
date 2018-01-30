@@ -117,12 +117,12 @@ int blenderInfrastructureExample() {
 	experiment1.run();
 	experiment2.run();
 //	experiment3.run();
-	experiment4.run();
+//	experiment4.run();
 //	experiment5.run();
 //	experiment6.run();
-	experiment7.run();
-	experiment8.run();
-	
+//	experiment7.run();
+//	experiment8.run();
+/*	
 	slBenchmark benchmark(&experiment7);
 
 	benchmark.addExperiment(&experiment1);
@@ -138,13 +138,13 @@ int blenderInfrastructureExample() {
 	benchmark.addMetric(new slResolutionMetric());
 
 	benchmark.compareExperiments();
-
+*/
 	sl3DReconstructor::writeXYZPointCloud(&experiment1);
 	sl3DReconstructor::writeXYZPointCloud(&experiment2);
 //	sl3DReconstructor::writeXYZPointCloud(&experiment3);
-	sl3DReconstructor::writeXYZPointCloud(&experiment4);
-	sl3DReconstructor::writeXYZPointCloud(&experiment7);
-	sl3DReconstructor::writeXYZPointCloud(&experiment8);
+//	sl3DReconstructor::writeXYZPointCloud(&experiment4);
+//	sl3DReconstructor::writeXYZPointCloud(&experiment7);
+//	sl3DReconstructor::writeXYZPointCloud(&experiment8);
 
 	return 0;
 }

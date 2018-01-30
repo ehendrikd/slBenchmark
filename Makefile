@@ -3,8 +3,8 @@ ifeq ($(OS),Windows_NT)
 	CV_LIB = /c/opencv/bin
 	CV_VERSION = 300
 else
-	CV_INCLUDE = /usr/local/Cellar/opencv3/3.2.0/include
-	CV_LIB = /usr/local/Cellar/opencv3/3.2.0/lib
+	CV_INCLUDE = /usr/local/Cellar/opencv/3.4.0_1/include
+	CV_LIB = /usr/local/Cellar/opencv/3.4.0_1/lib
 	CV_VERSION = 
 endif
 

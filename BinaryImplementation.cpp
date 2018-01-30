@@ -125,6 +125,7 @@ void BinaryImplementation::iterationProcess() {
 
 		for (int y = 0; y < cameraResolution.height; y++) {
 			for (int x = 0; x < cameraResolution.width; x++) {
+				
 				Vec3b positivePixelBGR = positiveMat.at<Vec3b>(y, x);
 				Vec3b negativePixelBGR = negativeMat.at<Vec3b>(y, x);
 
@@ -135,9 +136,14 @@ void BinaryImplementation::iterationProcess() {
 
 				int arrayOffset = (y * cameraResolution.width) + x;
 
-				binaryCode[arrayOffset] <<= 1;
-				if(colourDifference == -1) binaryCode[arrayOffset] = -1;
-				else binaryCode[arrayOffset] += colourDifference;
+				int before = binaryCode[arrayOffset];
+
+				if (binaryCode[arrayOffset] != -1) {
+					binaryCode[arrayOffset] <<= 1;
+				
+					if(colourDifference == -1) binaryCode[arrayOffset] = -1;
+					else binaryCode[arrayOffset] += colourDifference;
+				}
 			}
 		}	
 	}

@@ -48,14 +48,19 @@ Mat SingleLineImplementation::generatePattern() {
 double SingleLineImplementation::solveCorrespondence(int xProjector, int y) {
 	if (xProjector % interlines != 0) return -1;
 	Mat lineMat = experiment->getCaptureAt(xProjector / interlines);
+	int cameraWidth = experiment->getInfrastructure()->getCameraResolution().width;
 
 	double lineTotal = 0.0;
 	double aTotal = 0.0;
 
-	for (int column = 0; column < numberColumns; column++) {
+	for (int column = 0; column < cameraWidth; column++) {
 		Vec3b pixelBGR = lineMat.at<Vec3b>(y, column);
 
 		double colourTotal = (double)(pixelBGR[0] + pixelBGR[1] + pixelBGR[2]);
+
+		if (colourTotal < SINGLE_LINE_BLACK_THRESHOLD) {
+			colourTotal = 0;
+		}
 
 		lineTotal += colourTotal;
 		aTotal += ((double)column * colourTotal);

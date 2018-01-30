@@ -78,26 +78,13 @@ void slImplementation::iterateCorrespondences() {
 	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
 
 	for (int y = 0; y < cameraResolution.height; y++) {
+	//for (int y = 98; y <= 656; y++) {
 		for (int xPattern = 0; xPattern < getPatternWidth(); xPattern++) {
-			double xCamera = solveCorrespondence(xPattern, y);
+			double xCamera = solveCorrespondence(xPattern, y);	
 
-				int xProjector = (int)(experiment->getImplementation()->getPatternXOffsetFactor(xPattern) * projectorResolution.width);
-				if (xProjector == 494 && y <= 7) {
-					DB("xPattern: " << xPattern << "y: " << y << " xCamera: " << xCamera)
-				}
 			if (!isnan(xCamera) && xCamera != -1) {					
 				double displacement = experiment->getDisplacement(xPattern, xCamera);
-				//int xProjector = (int)(experiment->getImplementation()->getPatternXOffsetFactor(xPattern) * projectorResolution.width);
-
-				if (displacement == 0) {
-					DB("displacement=0 xPattern: " << xPattern << " xCamera: " << xCamera)
-				}
-
-
-				if (y == 0) {
-//					DB("xPattern: " << xPattern << " xCamera: " << xCamera)
-//					DB("xProjector: " << xProjector << " displacement: " << displacement)
-				}
+				int xProjector = (int)(experiment->getImplementation()->getPatternXOffsetFactor(xPattern) * projectorResolution.width);
 
 				if (!isinf(displacement)) {
 					slDepthExperimentResult result(xProjector, y, displacement);
@@ -270,20 +257,23 @@ Mat slPhysicalInfrastructure::projectAndCapture(Mat patternMat) {
 
 	namedWindow("main", CV_WINDOW_NORMAL);
 	setWindowProperty("main", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
-
+/*
 	if (projectorResolution.height != cameraResolution.height || projectorResolution.width != cameraResolution.width) {
 		Mat projectorPatternMat(projectorResolution.height, projectorResolution.width, CV_8UC3);
 		resize(patternMat, projectorPatternMat, projectorPatternMat.size());
 		imshow("main", projectorPatternMat);
 	} else {
+*/
 		imshow("main", patternMat);
-	}
+//	}
 
 	waitKey(waitTime);
 
 	videoCapture >> captureMat;
 
 	waitKey(waitTime);
+
+	videoCapture.release();
 	
 	DB("<- slPhysicalInfrastructure::projectAndCapture()")
 
