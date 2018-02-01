@@ -237,10 +237,11 @@ Mat slBlenderVirtualInfrastructure::projectAndCapture(Mat patternMat) {
  */ 
 
 //Create a physical infrastructure instance
-slPhysicalInfrastructure::slPhysicalInfrastructure(Size newProjectorResolution, Size newCameraResolution, int newCameraIndex, int newWaitTime): 
+slPhysicalInfrastructure::slPhysicalInfrastructure(Size newProjectorResolution, Size newCameraResolution, double newCameraProjectorSeparation, int newCameraIndex, int newWaitTime): 
 	slInfrastructure(string("slPhysicalInfrastructure"), newCameraResolution, newProjectorResolution), 
 	cameraIndex(newCameraIndex),
 	waitTime(newWaitTime) {
+	setCameraProjectorSeparation(newCameraProjectorSeparation);
 }
 
 //Project the structured light implementation pattern and capture it
@@ -553,9 +554,11 @@ if (temp) {
 }
 */
 	double displacement = Delta / 2 / (tgp*xp - tgc*xc);
+/*	
 	if (displacement == 0) {
 		DB("x_pattern: " << x_pattern << " x_image: " << x_image)
 	}
+*/	
     return Delta / 2 / (tgp*xp - tgc*xc);
 }
 

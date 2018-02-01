@@ -42,6 +42,9 @@
 #define DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV	49.134
 #define DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV	28.841
 
+//Default camera projector separation
+#define DEFAULT_CAMERA_PROJECTOR_SEPARATION	1
+
 //Default camera index
 #define DEFAULT_CAMERA_INDEX			0
 
@@ -241,6 +244,7 @@ class slPhysicalInfrastructure : public slInfrastructure {
 		slPhysicalInfrastructure(
 			Size newProjectorResolution = Size(DEFAULT_CAMERA_PROJECTOR_WIDTH, DEFAULT_CAMERA_PROJECTOR_HEIGHT),
 			Size newCameraResolution = Size(DEFAULT_CAMERA_PROJECTOR_WIDTH, DEFAULT_CAMERA_PROJECTOR_HEIGHT),
+			double newCameraProjectorSeparation = DEFAULT_CAMERA_PROJECTOR_SEPARATION,
 			int newCameraIndex = DEFAULT_CAMERA_INDEX,			
 			int newWaitTime = DEFAULT_WAIT_TIME
 		);

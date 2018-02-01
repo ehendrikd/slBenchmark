@@ -38,7 +38,7 @@ Mat DeBruijnImplementation::generatePattern() {
 
 	float columnWidth = (float)screenWidth / getNumberColumns();
 
-	DB("columnWidth: " << columnWidth)
+//	DB("columnWidth: " << columnWidth)
 
 	int size = DEBRUIJN_K * DEBRUIJN_N;
 	vector<int> a(size), sequence;
@@ -145,6 +145,7 @@ void DeBruijnImplementation::postIterationsProcess() {
 
 		sigma(edgeIndex - 1, getNumberEdges() - 1, transitions, edges, S);
 
+//		DB("edgeIndex - 1: " << (edgeIndex - 1) << " getNumberEdges() - 1: " << (getNumberEdges() - 1) << " y: " << y)
 		nCorrespondences = S[edgeIndex - 1][getNumberEdges() - 1].numberItems;
 		
 //		DB("Number of correspondences for y=" << y << ": " << nCorrespondences)
