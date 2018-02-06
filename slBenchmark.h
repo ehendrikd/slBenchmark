@@ -45,7 +45,8 @@
 //Default camera projector separation
 #define DEFAULT_CAMERA_PROJECTOR_SEPARATION	1
 
-//Default camera index
+//Default camera values
+#define DEFAULT_CAMERA_PIPE			""
 #define DEFAULT_CAMERA_INDEX			0
 
 //Default projection and capture wait (pause) time in milliseconds
@@ -55,11 +56,11 @@ using namespace std;
 using namespace cv;
 
 //Debug
-#ifdef DEBUG_BUILD
+//#ifdef DEBUG_BUILD
 #define DB(x) cerr << x << endl;
-#else
-#define DB(x)
-#endif
+//#else
+//#define DB(x)
+//#endif
 
 //Fatal error
 #define FATAL(x) cerr << "FATAL: " << x << endl; exit(-1);
@@ -135,15 +136,102 @@ class slImplementation {
 		string identifier;
 };
 
+//A device for capturing images
+class slCameraDevice {
+	public:
+		//Create a camera device
+		slCameraDevice(
+			int newResolutionWidth = DEFAULT_CAMERA_PROJECTOR_WIDTH,
+			int newResolutionHeight = DEFAULT_CAMERA_PROJECTOR_HEIGHT,
+			double newHorizontalFOV = DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV,
+			double newVerticalFOV = DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV,
+			string newCameraPipe = string(DEFAULT_CAMERA_PIPE),
+			int newCameraIndex = DEFAULT_CAMERA_INDEX
+		): 
+			resolution(Size(newResolutionWidth, newResolutionHeight)),
+			horizontalFOV(newHorizontalFOV), 
+			verticalFOV(newVerticalFOV), 
+			cameraPipe(newCameraPipe),
+			cameraIndex(newCameraIndex)
+		{};
+
+		//The resolution
+		Size resolution;
+		
+		//The horizontal FOV (degrees)
+		double horizontalFOV;
+		
+		//The vertical FOV (degrees)
+		double verticalFOV;
+
+		//The gstreamer pipe to capture with
+		string cameraPipe;
+
+		//The camera index to capture with
+		int cameraIndex;
+};
+
+//A device for projecting images
+class slProjectorDevice {
+	public:
+		//Create a projection device
+		slProjectorDevice(
+			int newResolutionWidth = DEFAULT_CAMERA_PROJECTOR_WIDTH,
+			int newResolutionHeight = DEFAULT_CAMERA_PROJECTOR_HEIGHT,
+			double newHorizontalFOV = DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV,
+			double newVerticalFOV = DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV
+		):
+			resolution(Size(newResolutionWidth, newResolutionHeight)),
+			horizontalFOV(newHorizontalFOV), 
+			verticalFOV(newVerticalFOV) 
+		{};
+
+		//The resolution
+		Size resolution;
+		
+		//The horizontal FOV (degrees)
+		double horizontalFOV;
+		
+		//The vertical FOV (degrees)
+		double verticalFOV;
+};
+
+//An infrastructure setup represents a particular capture device, projection device and separation between them
+class slInfrastructureSetup {
+	public:
+		//Create an infrastructure setup
+		slInfrastructureSetup(
+			slCameraDevice newCameraDevice = slCameraDevice(),
+			slProjectorDevice newProjectorDevice = slProjectorDevice(),
+			double newCameraProjectorSeparation = DEFAULT_CAMERA_PROJECTOR_SEPARATION
+		):
+			cameraDevice(newCameraDevice),
+			projectorDevice(newProjectorDevice),
+			cameraProjectorSeparation(newCameraProjectorSeparation)
+		{};
+
+		//The camera device
+		slCameraDevice cameraDevice;
+
+		//The projector device
+		slProjectorDevice projectorDevice;
+
+		//The distance between the camera and projector
+		double cameraProjectorSeparation;
+};
+
 //Abstract infrastruture (projector and camera) class used for the benchmarking
 class slInfrastructure {
 	public:
 		//Create an infrastructure instance with a benchmark and a name
 		slInfrastructure(
-			string,
-			Size newCameraResolution = Size(DEFAULT_CAMERA_PROJECTOR_WIDTH, DEFAULT_CAMERA_PROJECTOR_HEIGHT),
-			Size newProjectorResolution = Size(DEFAULT_CAMERA_PROJECTOR_WIDTH, DEFAULT_CAMERA_PROJECTOR_HEIGHT)
-		);
+			string newName,
+			slInfrastructureSetup newInfrastructureSetup = slInfrastructureSetup()
+		):
+			name(newName),
+			infrastructureSetup(newInfrastructureSetup),
+			experiment(NULL)
+		{};
 
 		//Clean up
 		virtual ~slInfrastructure() {};
@@ -157,69 +245,30 @@ class slInfrastructure {
 		//Get the camera resolution
 		Size getCameraResolution();
 
-		//Set the camera resolution
-		void setCameraResolution(Size);
-
 		//Get the projector resolution
 		Size getProjectorResolution();
-
-		//Set the projector resolution
-		void setProjectorResolution(Size);
 
 		//Get the horizontal camera FOV angle (degrees)
 		double getCameraHorizontalFOV();
 
-		//Set the horizontal camera FOV angle (degrees)
-		void setCameraHorizontalFOV(double);
-
 		//Get the vertical camera FOV angle (degrees)
 		double getCameraVerticalFOV();
-
-		//Set the vertical camera FOV angle (degrees)
-		void setCameraVerticalFOV(double);
 
 		//Get the horizontal projector FOV angle (degrees)
 		double getProjectorHorizontalFOV();
 
-		//Set the horizontal projector FOV angle (degrees)
-		void setProjectorHorizontalFOV(double);
-
 		//Get the vertical projector FOV angle (degrees)
 		double getProjectorVerticalFOV();
 
-		//Set the vertical projector FOV angle (degrees)
-		void setProjectorVerticalFOV(double);
-
 		//Get the distance between the camera and the projector
 		double getCameraProjectorSeparation();
-
-		//Set the distance between the camera and the projector
-		void setCameraProjectorSeparation(double);
 
 		//A reference to the current experiment
 		slExperiment *experiment;
 
 	protected:
-		//The camera resolution
-		Size cameraResolution;
-
-		//The projector resolution
-		Size projectorResolution;
-
-		//The camera horizontal FOV (degrees)
-		double cameraHorizontalFOV;
-
-		//The projector horizontal FOV (degrees)
-		double projectorHorizontalFOV;
-
-		//The camera vertical FOV (degrees)
-		double cameraVerticalFOV;
-
-		//The projector horizontal FOV (degrees)
-		double projectorVerticalFOV;
-
-		//The distance between the camera and the projector
-		double cameraProjectorSeparation;
+		//The infrastructure setup
+		slInfrastructureSetup infrastructureSetup;
 
 	private:
 		//The name of this infrastructure
@@ -231,7 +280,7 @@ class slInfrastructure {
 class slBlenderVirtualInfrastructure : public slInfrastructure {
 	public:
 		//Create a blender virtual infrastruture instance
-		slBlenderVirtualInfrastructure();
+		slBlenderVirtualInfrastructure(): slInfrastructure(string("slBlenderVirtualInfrastructure")) {};
 
 		//Project the structured light implementation pattern and capture it
 		Mat projectAndCapture(Mat);
@@ -242,20 +291,17 @@ class slPhysicalInfrastructure : public slInfrastructure {
 	public:
 		//Create a physical infrastruture instance
 		slPhysicalInfrastructure(
-			Size newProjectorResolution = Size(DEFAULT_CAMERA_PROJECTOR_WIDTH, DEFAULT_CAMERA_PROJECTOR_HEIGHT),
-			Size newCameraResolution = Size(DEFAULT_CAMERA_PROJECTOR_WIDTH, DEFAULT_CAMERA_PROJECTOR_HEIGHT),
-			double newCameraProjectorSeparation = DEFAULT_CAMERA_PROJECTOR_SEPARATION,
-			int newCameraIndex = DEFAULT_CAMERA_INDEX,			
+			slInfrastructureSetup newInfrastructureSetup = slInfrastructureSetup(),
 			int newWaitTime = DEFAULT_WAIT_TIME
-		);
+		): 
+			slInfrastructure(string("slPhysicalInfrastructure"), newInfrastructureSetup),
+			waitTime(newWaitTime)
+		{};
 
 		//Project the structured light implementation pattern and capture it
 		Mat projectAndCapture(Mat);
 
 	private:
-		//The camera index to use
-		int cameraIndex;
-
 		//The wait (pause) time in milliseconds between each projection and capture
 		int waitTime;
 };

@@ -93,6 +93,9 @@ void DeBruijnImplementation::postIterationsProcess() {
 
 	float columnWidth = (float)cameraResolution.width / (float)getNumberColumns();
 
+	int minY = -1;
+	int maxY = 0;
+
 	for (int y = 0; y < cameraResolution.height; y++) {
 		int prevR = 0;
 		int prevG = 0;
@@ -122,10 +125,27 @@ void DeBruijnImplementation::postIterationsProcess() {
 				(gradients[x - 1] + DEBRUIJN_THRESHOLD) < gradients[x] && 
 				(gradients[x + 1] + DEBRUIJN_THRESHOLD) < gradients[x]
 			) {
+				if (y == 118 || (y == 129 && x == 984)) {
+					DB("y: " << y << " gradients[" << x << " - 1]: " << gradients[x - 1] << " gradients[" << x << " + 1]: " << gradients[x + 1] << " gradients[" << x << "]: " << gradients[x])
+				}
 				edges[edgeIndex] = differences[x];
 				correspondence[edgeIndex] = x;
 				edgeIndex++;
 			}
+		}
+
+		if (edgeIndex == 0) {
+			continue;
+		}
+
+		DB("y: " << y << " edgeIndex: " << edgeIndex)
+
+		if (minY == -1) {
+			minY = y;
+		}
+
+		if (y > maxY) {
+			maxY = y;
 		}
 
 		pairScore **S;
@@ -174,6 +194,8 @@ void DeBruijnImplementation::postIterationsProcess() {
 		delete[] differences;
 		delete[] edges;
 	}
+
+	DB("minY: " << minY << " maxY: " << maxY)
 }
 
 void DeBruijnImplementation::db(int t, int p, int k, int n, vector<int> &a, vector<int> &sequence) {
@@ -293,20 +315,26 @@ void DeBruijnImplementation::populateCorrespondences(int i, int j, int correspon
 	
 	/* Find if we are in case 1, 2 or 3 */
 	/*if(S[i][j].score > S[i-1][j].score && S[i][j].score > S[i][j-1].score){*/
+
 	switch (S[i][j].caseSigma) {
-		case 1:
-			correspondences[S[i][j].numberItems - 1][0] = i;
-			correspondences[S[i][j].numberItems - 1][1] = j;
-			populateCorrespondences(i - 1, j - 1, correspondences, S);
+		case 1: {
+				correspondences[S[i][j].numberItems - 1][0] = i;
+				correspondences[S[i][j].numberItems - 1][1] = j;
+				populateCorrespondences(i - 1, j - 1, correspondences, S);
+			}
 			break;
-		case 2:
-			populateCorrespondences(i - 1, j, correspondences, S);
+		case 2: {
+				populateCorrespondences(i - 1, j, correspondences, S);
+			}
 			break;
-		case 3:
-			populateCorrespondences(i, j - 1, correspondences, S);
+		case 3:	{
+				populateCorrespondences(i, j - 1, correspondences, S);
+			}
 			break;
-		default:
-			DB("ERROR CHECKING CASE in populateCorrespondences")
+		default: {
+				DB("ERROR CHECKING CASE in populateCorrespondences")
+			}
 	}
+
 }
 

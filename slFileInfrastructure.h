@@ -36,7 +36,7 @@ class slFileInfrastructure : public slInfrastructure {
 
 	public:
 		//Create a blender virtual infrastruture instance
-		slFileInfrastructure(string, double, double, double, double, double);
+		slFileInfrastructure(string, slInfrastructureSetup);
 
 		//Project the structured light implementation pattern and capture it
 		Mat projectAndCapture(Mat);

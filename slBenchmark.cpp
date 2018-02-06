@@ -99,9 +99,6 @@ void slImplementation::iterateCorrespondences() {
  * slInfrastructure
  */ 
 
-//Create an infrastructure instance with a name, camera resolution and cropped area
-slInfrastructure::slInfrastructure(string newName, Size newCameraResolution, Size newProjectorResolution): name(newName), cameraResolution(newCameraResolution), projectorResolution(newProjectorResolution), cameraHorizontalFOV(0), projectorHorizontalFOV(0), cameraVerticalFOV(0), projectorVerticalFOV(0), cameraProjectorSeparation(0), experiment(NULL) {
-}
 
 //The name of this infrastructure
 string slInfrastructure::getName() {
@@ -110,91 +107,47 @@ string slInfrastructure::getName() {
 
 //Get the camera resolution
 Size slInfrastructure::getCameraResolution() {
-	return cameraResolution;
-}
-
-//Set the camera resolution
-void slInfrastructure::setCameraResolution(Size newCameraResolution) {
-	cameraResolution = newCameraResolution;
+	return infrastructureSetup.cameraDevice.resolution;
 }
 
 //Get the projector resolution
 Size slInfrastructure::getProjectorResolution() {
-	return projectorResolution;
-}
-
-//Set the projector resolution
-void slInfrastructure::setProjectorResolution(Size newProjectorResolution) {
-	projectorResolution = newProjectorResolution;
+	return infrastructureSetup.projectorDevice.resolution;
 }
 
 //Get the camera horizontal FOV angle (degrees)
 double slInfrastructure::getCameraHorizontalFOV() {
-	return cameraHorizontalFOV;
-}
-
-//Set the camera horizontal FOV angle (degrees)
-void slInfrastructure::setCameraHorizontalFOV(double newCameraHorizontalFOV) {
-	cameraHorizontalFOV = newCameraHorizontalFOV;
+	return infrastructureSetup.cameraDevice.horizontalFOV;
 }
 
 //Get the camera vertical FOV angle (degrees)
 double slInfrastructure::getCameraVerticalFOV() {
-	return cameraVerticalFOV;
-}
-
-//Set the camera vertical FOV angle (degrees)
-void slInfrastructure::setCameraVerticalFOV(double newCameraVerticalFOV) {
-	cameraVerticalFOV = newCameraVerticalFOV;
+	return infrastructureSetup.cameraDevice.verticalFOV;
 }
 
 //Get the projector horizontal FOV angle (degrees)
 double slInfrastructure::getProjectorHorizontalFOV() {
-	return projectorHorizontalFOV;
-}
-
-//Set the projector horizontal FOV angle (degrees)
-void slInfrastructure::setProjectorHorizontalFOV(double newProjectorHorizontalFOV) {
-	projectorHorizontalFOV = newProjectorHorizontalFOV;
+	return infrastructureSetup.projectorDevice.horizontalFOV;
 }
 
 //Get the projector vertical FOV angle (degrees)
 double slInfrastructure::getProjectorVerticalFOV() {
-	return projectorVerticalFOV;
-}
-
-//Set the projector vertical FOV angle (degrees)
-void slInfrastructure::setProjectorVerticalFOV(double newProjectorVerticalFOV) {
-	projectorVerticalFOV = newProjectorVerticalFOV;
+	return infrastructureSetup.projectorDevice.verticalFOV;
 }
 
 //Get the distance between the camera and the projector
 double slInfrastructure::getCameraProjectorSeparation() {
-	return cameraProjectorSeparation;
-}
-
-//Set the distance between the camera and the projector
-void slInfrastructure::setCameraProjectorSeparation(double newCameraProjectorSeparation) {
-	cameraProjectorSeparation = newCameraProjectorSeparation;
+	return infrastructureSetup.cameraProjectorSeparation;
 }
 
 /*
  * slBlenderVirtualInfrastructure
  */ 
 
-//Create a blender virtual infrastructure instance
-slBlenderVirtualInfrastructure::slBlenderVirtualInfrastructure() : slInfrastructure(string("slBlenderVirtualInfrastructure")) {
-	setCameraHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV);
-	setCameraVerticalFOV(DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV);
-	setProjectorHorizontalFOV(DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV);
-	setProjectorVerticalFOV(DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV);
-	setCameraProjectorSeparation(1);
-}
-
 //Project the structured light implementation pattern and capture it
 Mat slBlenderVirtualInfrastructure::projectAndCapture(Mat patternMat) {
 	DB("-> slBlenderVirtualInfrastructure::projectAndCapture()")
-			
+
 	stringstream patternFilename, captureFilename, outputFilename, blenderCommandLine;
 
 	patternFilename << "." << OS_SEP << "blender_tmp_pattern.png";
@@ -208,8 +161,8 @@ Mat slBlenderVirtualInfrastructure::projectAndCapture(Mat patternMat) {
 			<< patternFilename.str() << " " 
 			<< captureFilename.str() << " " 
 			<< outputFilename.str() << " "
-			<< (int)cameraResolution.width << " " 
-			<< (int)cameraResolution.height << " "
+			<< (int)getCameraResolution().width << " " 
+			<< (int)getCameraResolution().height << " "
 			<< getCameraHorizontalFOV() << " "
 			<< getProjectorHorizontalFOV();
 			
@@ -236,37 +189,37 @@ Mat slBlenderVirtualInfrastructure::projectAndCapture(Mat patternMat) {
  * slPhysicalInfrastructure
  */ 
 
-//Create a physical infrastructure instance
-slPhysicalInfrastructure::slPhysicalInfrastructure(Size newProjectorResolution, Size newCameraResolution, double newCameraProjectorSeparation, int newCameraIndex, int newWaitTime): 
-	slInfrastructure(string("slPhysicalInfrastructure"), newCameraResolution, newProjectorResolution), 
-	cameraIndex(newCameraIndex),
-	waitTime(newWaitTime) {
-	setCameraProjectorSeparation(newCameraProjectorSeparation);
-}
-
 //Project the structured light implementation pattern and capture it
 Mat slPhysicalInfrastructure::projectAndCapture(Mat patternMat) {
 	DB("-> slPhysicalInfrastructure::projectAndCapture()")
 
-	VideoCapture videoCapture(cameraIndex);
+	//VideoCapture videoCapture(cameraIndex);
+	//VideoCapture videoCapture("decklinkvideosrc mode=11 ! videoconvert ! video/x-raw, format=(string)BGR ! appsink");
+	slCameraDevice cameraDevice = infrastructureSetup.cameraDevice;
+	bool isPipe = cameraDevice.cameraPipe.length() > 0;
+
+	VideoCapture videoCapture;
+
+	if (isPipe) {
+		videoCapture = VideoCapture(cameraDevice.cameraPipe.c_str());
+	} else {
+		videoCapture = VideoCapture(cameraDevice.cameraIndex);
+	}
 
 	if (!videoCapture.isOpened()) {
-		FATAL("Could not open video capture device #" << cameraIndex)
+		if (isPipe) {
+			FATAL("Could not open gstreamer pipe: \"" << cameraDevice.cameraPipe << "\"")
+		} else {
+			FATAL("Could not open camera index: " << cameraDevice.cameraIndex)
+		}
 	}
 
 	Mat captureMat;
 
 	namedWindow("main", CV_WINDOW_NORMAL);
 	setWindowProperty("main", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
-/*
-	if (projectorResolution.height != cameraResolution.height || projectorResolution.width != cameraResolution.width) {
-		Mat projectorPatternMat(projectorResolution.height, projectorResolution.width, CV_8UC3);
-		resize(patternMat, projectorPatternMat, projectorPatternMat.size());
-		imshow("main", projectorPatternMat);
-	} else {
-*/
-		imshow("main", patternMat);
-//	}
+	
+	imshow("main", patternMat);
 
 	waitKey(waitTime);
 
@@ -275,7 +228,7 @@ Mat slPhysicalInfrastructure::projectAndCapture(Mat patternMat) {
 	waitKey(waitTime);
 
 	videoCapture.release();
-	
+
 	DB("<- slPhysicalInfrastructure::projectAndCapture()")
 
 	return captureMat;
@@ -914,13 +867,12 @@ void sl3DReconstructor::writeXYZPointCloud(slDepthExperiment *depthExperiment) {
 
 			if (depthExperiment->isDepthDataValued(arrayOffset)) {
 				double zCoord = depthExperiment->getDepthData(arrayOffset);
-				if (zCoord == 0) {
-					DB("x: " << x << " y: " << y << " z: " << zCoord)
-				}
 				double xCoord = ((double)x - halfNumPatternColumns) * zCoord * (2.0 * halfProjectorHorizontalFOVRadians / numPatternColumns);
 				double yCoord = ((double)y - halfCameraHeight) * zCoord * (2.0 * halfCameraVerticalFOVRadians / cameraHeight);
+//				if (zCoord > -70 && zCoord < -20) {
+					outputFileStream << xCoord << " " << yCoord << " " << zCoord << endl;
+//				}
 
-				outputFileStream << xCoord << " " << yCoord << " " << zCoord << endl;
 				//outputFileStream << "[x: " << x << " y: " << y << "] " << xCoord << " " << yCoord << " " << zCoord << endl;
 			}
 		}	

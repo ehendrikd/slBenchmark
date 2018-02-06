@@ -42,7 +42,7 @@ void RaycastImplementation::postIterationsProcess() {
 
 	int exeResult = system(blenderCommandLine.str().c_str());
 
-	ifstream raycastDepthfile(outputFilename.str());
+	ifstream raycastDepthfile(outputFilename.str().c_str());
 	string line;
 
 	while (getline(raycastDepthfile, line)) {

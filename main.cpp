@@ -60,77 +60,38 @@ int fileInfrastructureExample() {
  * appropriate blender file slVirtualScene.json.
  */
 int blenderInfrastructureExample() {
-//	double hFOV = DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV;
-//	double vFOV = DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV;
+	slCameraDevice logitechC920(1920, 1080, 70.42, 43.3);
+	slCameraDevice canonLegriaHFG25(1920, 1080, 71.00817551, 43.72998906, string("decklinkvideosrc mode=11 ! videobalance brightness=-0.31496063 contrast=1.393700787 ! videoconvert ! video/x-raw, format=(string)BGR ! appsink"));
+	//slCameraDevice canonLegriaHFG25(1920, 500, 71.00817551, 20.245365306, string("decklinkvideosrc mode=11 ! videobalance brightness=-0.31496063 contrast=1.393700787 ! videoconvert ! video/x-raw, format=(string)BGR ! appsink"));
+	slProjectorDevice acerX1261P(1024, 768, 31.21119655, 23.66278431);
+	slProjectorDevice hitachiPJTX100(1280, 720, 38.76968605, 22.39062111);
 
-	Size logitechC920Resolution(1920, 1080);
-	double logitechC920vFOV = 43.3;
-	double logitechC920hFOV = 70.42;
-	Size acerX1261PResolution(1024, 768);
-	double acerX1261PvFOV = 23.66278431;
-	double acerX1261PhFOV = 31.21119655;
-	Size hitachiPJTX100Resolution(1280, 720);
-	double hitachiPJTX100vFOV = 22.39062111;
-	double hitachiPJTX100hFOV = 38.76968605;
-
-	Size cameraResolution = logitechC920Resolution;
-	double cameraVFOV = logitechC920vFOV;
-	double cameraHFOV = logitechC920hFOV;
-	Size projectorResolution = hitachiPJTX100Resolution;
-	double projectorVFOV = hitachiPJTX100vFOV;
-	double projectorHFOV = hitachiPJTX100hFOV;
-
-	double cameraProjectorSeparation = 14.0;
+	slInfrastructureSetup physicalSetup(canonLegriaHFG25, hitachiPJTX100, 17.5);
+	slInfrastructureSetup virtualSetup;
+	
+	slInfrastructureSetup currentSetup = physicalSetup;
 
 //	slBlenderVirtualInfrastructure blenderVirtualInfrastructure;
-	slPhysicalInfrastructure physicalInfrastructure(projectorResolution, cameraResolution, cameraProjectorSeparation);
-//	slFileInfrastructure fileInfrastructure("30_60_fov_45", 30, 17.142, 60, 35.983, 1);
-//	slFileInfrastructure fileInfrastructureSingleLine("default_fov_sphere_cube_singleline", hFOV, vFOV, hFOV, vFOV, 1);
-	slFileInfrastructure fileInfrastructureSingleLine("physical_singleline_plane", cameraHFOV, cameraVFOV, projectorHFOV, projectorVFOV, cameraProjectorSeparation);
-//	slFileInfrastructure fileInfrastructureBinary("default_fov_sphere_cube_binary", hFOV, vFOV, hFOV, vFOV, 1);
-	slFileInfrastructure fileInfrastructureBinary("physical_binary_plane", cameraHFOV, cameraVFOV, projectorHFOV, projectorVFOV, cameraProjectorSeparation);
-//	slFileInfrastructure fileInfrastructureBinary("default_fov_plane_binary", hFOV, vFOV, hFOV, vFOV, 1);
-//	slFileInfrastructure fileInfrastructureBinary("default_fov_sphere_cube_binary_2048x1080", hFOV, vFOV, hFOV, vFOV, 1);
-//	slFileInfrastructure fileInfrastructureGrayCoded("default_fov_sphere_cube_graycoded", hFOV, vFOV, hFOV, vFOV, 1);
-	slFileInfrastructure fileInfrastructureGrayCoded("physical_graycoded_plane", cameraHFOV, cameraVFOV, projectorHFOV, projectorVFOV, cameraProjectorSeparation);
-//	slFileInfrastructure fileInfrastructureDeBruijn("default_fov_sphere_cube_debruijn", hFOV, vFOV, hFOV, vFOV, 1);
-	slFileInfrastructure fileInfrastructureDeBruijn("physical_debruijn_plane", cameraHFOV, cameraVFOV, projectorHFOV, projectorVFOV, cameraProjectorSeparation);
-//	slFileInfrastructure fileInfrastructurePSM("default_fov_sphere_cube_psm", hFOV, vFOV, hFOV, vFOV, 1);
-//	slFileInfrastructure fileInfrastructurePSM("default_fov_plane_psm", hFOV, vFOV, hFOV, vFOV, 1);
+	slPhysicalInfrastructure physicalInfrastructure(currentSetup);
+//	slFileInfrastructure fileInfrastructureSingleLine("default_fov_sphere_cube_singleline", currentSetup);
+	slFileInfrastructure fileInfrastructureSingleLine("physical_singleline_plane", currentSetup);
+//	slFileInfrastructure fileInfrastructureBinary("default_fov_sphere_cube_binary", currentSetup);
+	slFileInfrastructure fileInfrastructureBinary("physical_binary_plane", currentSetup);
+//	slFileInfrastructure fileInfrastructureBinary("default_fov_plane_binary", currentSetup);
+//	slFileInfrastructure fileInfrastructureBinary("default_fov_sphere_cube_binary_2048x1080", currentSetup);
+//	slFileInfrastructure fileInfrastructureGrayCoded("default_fov_sphere_cube_graycoded", currentSetup);
+	slFileInfrastructure fileInfrastructureGrayCoded("physical_graycoded_plane", currentSetup);
+//	slFileInfrastructure fileInfrastructureDeBruijn("default_fov_sphere_cube_debruijn", currentSetup);
+	slFileInfrastructure fileInfrastructureDeBruijn("physical_debruijn_plane", currentSetup);
+//	slFileInfrastructure fileInfrastructurePSM("default_fov_sphere_cube_psm", currentSetup);
+//	slFileInfrastructure fileInfrastructurePSM("default_fov_plane_psm", currentSetup);
 	
-/*	
-	blenderVirtualInfrastructure.setCameraHorizontalFOV(30); 
-	blenderVirtualInfrastructure.setCameraVerticalFOV(17.142);	
-	blenderVirtualInfrastructure.setProjectorHorizontalFOV(60); 
-	blenderVirtualInfrastructure.setProjectorVerticalFOV(35.983); 
-*/
-/*	
-	blenderVirtualInfrastructure.setCameraResolution(Size(2048, 1080)); 
-	blenderVirtualInfrastructure.setProjectorResolution(Size(2048, 1080)); 
-	fileInfrastructureBinary.setCameraResolution(Size(2048, 1080)); 
-	fileInfrastructureBinary.setProjectorResolution(Size(2048, 1080)); 
-*/
-
-	physicalInfrastructure.setCameraVerticalFOV(cameraVFOV);
-	physicalInfrastructure.setCameraHorizontalFOV(cameraHFOV);
-	physicalInfrastructure.setProjectorVerticalFOV(projectorVFOV);
-	physicalInfrastructure.setProjectorHorizontalFOV(projectorHFOV);
-
-	fileInfrastructureSingleLine.setCameraResolution(cameraResolution); 
-	fileInfrastructureSingleLine.setProjectorResolution(projectorResolution);
-	fileInfrastructureBinary.setCameraResolution(cameraResolution); 
-	fileInfrastructureBinary.setProjectorResolution(projectorResolution);
-	fileInfrastructureGrayCoded.setCameraResolution(cameraResolution); 
-	fileInfrastructureGrayCoded.setProjectorResolution(projectorResolution);
-	fileInfrastructureDeBruijn.setCameraResolution(cameraResolution); 
-	fileInfrastructureDeBruijn.setProjectorResolution(projectorResolution);
-
 	BinaryImplementation binaryImplementation(128);
 	GrayCodedBinaryImplementation grayCodedBinaryImplementation(128);
 //	PSMImplementation psmImplementation;
 	DeBruijnImplementation deBruijnImplementation(128);
 
-	SingleLineImplementation singleLineImplementation((int)projectorResolution.width);
+	SingleLineImplementation singleLineImplementation((int)currentSetup.projectorDevice.resolution.width);
 //	RaycastImplementation raycastImplementation(1920);
 //	SingleLineImplementation singleLineImplementation(1920);
 //	RaycastImplementation raycastImplementation(2048);
@@ -145,8 +106,8 @@ int blenderInfrastructureExample() {
 //	slSpeedDepthExperiment experiment3(&blenderVirtualInfrastructure, &psmImplementation);
 //	slSpeedDepthExperiment experiment3(&fileInfrastructurePSM, &psmImplementation);
 //	slSpeedDepthExperiment experiment4(&blenderVirtualInfrastructure, &deBruijnImplementation);
-	slSpeedDepthExperiment experiment4(&physicalInfrastructure, &deBruijnImplementation);
-//	slSpeedDepthExperiment experiment4(&fileInfrastructureDeBruijn, &deBruijnImplementation);
+//	slSpeedDepthExperiment experiment4(&physicalInfrastructure, &deBruijnImplementation);
+	slSpeedDepthExperiment experiment4(&fileInfrastructureDeBruijn, &deBruijnImplementation);
 
 //	slSpeedDepthExperiment experiment5(&physicalInfrastructure, &deBruijnImplementation);
 //	slSpeedDepthExperiment experiment5(&physicalInfrastructure, &binaryImplementation);
@@ -199,4 +160,28 @@ int main()
 {
 //	return fileInfrastructureExample();
 	return blenderInfrastructureExample();
+/*
+	
+	VideoCapture videoCapture("decklinkvideosrc mode=11 ! videoconvert ! video/x-raw, format=(string)BGR ! appsink");
+
+	if (!videoCapture.isOpened()) {
+		FATAL("Could not open video capture device")
+	}
+
+	Mat captureMat;
+
+	namedWindow("main", CV_WINDOW_NORMAL);
+
+	while(true) {
+		videoCapture.read(captureMat);
+
+		if(captureMat.empty())
+            		break;
+
+
+	        imshow("main", captureMat);
+        	if(waitKey(1) == 's')
+           		 break;
+	}
+*/
 }
