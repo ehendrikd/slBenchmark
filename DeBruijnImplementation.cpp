@@ -4,8 +4,6 @@ DeBruijnImplementation::DeBruijnImplementation(unsigned int newNumColumns): slIm
 }
 
 void DeBruijnImplementation::preExperimentRun() {
-	slInfrastructure *infrastructure = experiment->getInfrastructure();
-
 	transitions = new Vec3s[getNumberEdges()];
 }
 
@@ -93,9 +91,6 @@ void DeBruijnImplementation::postIterationsProcess() {
 
 	float columnWidth = (float)cameraResolution.width / (float)getNumberColumns();
 
-	int minY = -1;
-	int maxY = 0;
-
 	for (int y = 0; y < cameraResolution.height; y++) {
 		int prevR = 0;
 		int prevG = 0;
@@ -125,9 +120,6 @@ void DeBruijnImplementation::postIterationsProcess() {
 				(gradients[x - 1] + DEBRUIJN_THRESHOLD) < gradients[x] && 
 				(gradients[x + 1] + DEBRUIJN_THRESHOLD) < gradients[x]
 			) {
-				if (y == 118 || (y == 129 && x == 984)) {
-					DB("y: " << y << " gradients[" << x << " - 1]: " << gradients[x - 1] << " gradients[" << x << " + 1]: " << gradients[x + 1] << " gradients[" << x << "]: " << gradients[x])
-				}
 				edges[edgeIndex] = differences[x];
 				correspondence[edgeIndex] = x;
 				edgeIndex++;
@@ -136,16 +128,6 @@ void DeBruijnImplementation::postIterationsProcess() {
 
 		if (edgeIndex == 0) {
 			continue;
-		}
-
-		DB("y: " << y << " edgeIndex: " << edgeIndex)
-
-		if (minY == -1) {
-			minY = y;
-		}
-
-		if (y > maxY) {
-			maxY = y;
 		}
 
 		pairScore **S;
@@ -195,7 +177,6 @@ void DeBruijnImplementation::postIterationsProcess() {
 		delete[] edges;
 	}
 
-	DB("minY: " << minY << " maxY: " << maxY)
 }
 
 void DeBruijnImplementation::db(int t, int p, int k, int n, vector<int> &a, vector<int> &sequence) {

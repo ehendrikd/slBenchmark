@@ -8,9 +8,11 @@
 
 #define DEBRUIJN_ALPHA 0.2
 #define DEBRUIJN_BETA 0.8
+//#define DEBRUIJN_ALPHA 0.0
+//#define DEBRUIJN_BETA 1.0
 
 //#define DEBRUIJN_THRESHOLD 5000
-#define DEBRUIJN_THRESHOLD 10000
+#define DEBRUIJN_THRESHOLD 200
 
 using namespace cv;
 

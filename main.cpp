@@ -61,7 +61,8 @@ int fileInfrastructureExample() {
  */
 int blenderInfrastructureExample() {
 	slCameraDevice logitechC920(1920, 1080, 70.42, 43.3);
-	slCameraDevice canonLegriaHFG25(1920, 1080, 71.00817551, 43.72998906, string("decklinkvideosrc mode=11 ! videobalance brightness=-0.31496063 contrast=1.393700787 ! videoconvert ! video/x-raw, format=(string)BGR ! appsink"));
+	//slCameraDevice canonLegriaHFG25(1920, 1080, 71.00817551, 43.72998906, string("decklinkvideosrc mode=11 ! videobalance brightness=-0.31496063 contrast=1.393700787 ! videoconvert ! video/x-raw, format=(string)BGR ! appsink"));
+	slCameraDevice canonLegriaHFG25(1920, 1080, 71.00817551, 43.72998906, string("decklinkvideosrc mode=11 ! videobalance brightness=-0.2 ! videoconvert ! video/x-raw, format=(string)BGR ! appsink"));
 	//slCameraDevice canonLegriaHFG25(1920, 500, 71.00817551, 20.245365306, string("decklinkvideosrc mode=11 ! videobalance brightness=-0.31496063 contrast=1.393700787 ! videoconvert ! video/x-raw, format=(string)BGR ! appsink"));
 	slProjectorDevice acerX1261P(1024, 768, 31.21119655, 23.66278431);
 	slProjectorDevice hitachiPJTX100(1280, 720, 38.76968605, 22.39062111);
@@ -106,8 +107,8 @@ int blenderInfrastructureExample() {
 //	slSpeedDepthExperiment experiment3(&blenderVirtualInfrastructure, &psmImplementation);
 //	slSpeedDepthExperiment experiment3(&fileInfrastructurePSM, &psmImplementation);
 //	slSpeedDepthExperiment experiment4(&blenderVirtualInfrastructure, &deBruijnImplementation);
-//	slSpeedDepthExperiment experiment4(&physicalInfrastructure, &deBruijnImplementation);
-	slSpeedDepthExperiment experiment4(&fileInfrastructureDeBruijn, &deBruijnImplementation);
+	slSpeedDepthExperiment experiment4(&physicalInfrastructure, &deBruijnImplementation);
+//	slSpeedDepthExperiment experiment4(&fileInfrastructureDeBruijn, &deBruijnImplementation);
 
 //	slSpeedDepthExperiment experiment5(&physicalInfrastructure, &deBruijnImplementation);
 //	slSpeedDepthExperiment experiment5(&physicalInfrastructure, &binaryImplementation);
@@ -118,8 +119,8 @@ int blenderInfrastructureExample() {
 	slSpeedDepthExperiment experiment8(&physicalInfrastructure, &singleLineImplementation);
 //	slSpeedDepthExperiment experiment8(&fileInfrastructureSingleLine, &singleLineImplementation);
 
-//	experiment1.run();
-//	experiment2.run();
+	experiment1.run();
+	experiment2.run();
 //	experiment3.run();
 	experiment4.run();
 //	experiment5.run();
@@ -140,8 +141,8 @@ int blenderInfrastructureExample() {
 
 	benchmark.compareExperiments();
 */
-//	sl3DReconstructor::writeXYZPointCloud(&experiment1);
-//	sl3DReconstructor::writeXYZPointCloud(&experiment2);
+	sl3DReconstructor::writeXYZPointCloud(&experiment1);
+	sl3DReconstructor::writeXYZPointCloud(&experiment2);
 //	sl3DReconstructor::writeXYZPointCloud(&experiment3);
 	sl3DReconstructor::writeXYZPointCloud(&experiment4);
 //	sl3DReconstructor::writeXYZPointCloud(&experiment7);
