@@ -164,7 +164,9 @@ Mat slBlenderVirtualInfrastructure::projectAndCapture(Mat patternMat) {
 			<< (int)getCameraResolution().width << " " 
 			<< (int)getCameraResolution().height << " "
 			<< getCameraHorizontalFOV() << " "
-			<< getProjectorHorizontalFOV();
+			<< getProjectorHorizontalFOV() << " "
+			<< getCameraProjectorSeparation() << " "
+			<< (saveBlenderFile ? "true" : "false");
 			
 	DB("blenderCommandLine: " << blenderCommandLine.str())
 
@@ -193,8 +195,6 @@ Mat slBlenderVirtualInfrastructure::projectAndCapture(Mat patternMat) {
 Mat slPhysicalInfrastructure::projectAndCapture(Mat patternMat) {
 	DB("-> slPhysicalInfrastructure::projectAndCapture()")
 
-	//VideoCapture videoCapture(cameraIndex);
-	//VideoCapture videoCapture("decklinkvideosrc mode=11 ! videoconvert ! video/x-raw, format=(string)BGR ! appsink");
 	slCameraDevice cameraDevice = infrastructureSetup.cameraDevice;
 	bool isPipe = cameraDevice.cameraPipe.length() > 0;
 
@@ -230,6 +230,31 @@ Mat slPhysicalInfrastructure::projectAndCapture(Mat patternMat) {
 	videoCapture.release();
 
 	DB("<- slPhysicalInfrastructure::projectAndCapture()")
+
+	return captureMat;
+}
+
+/*
+ * slFileInfrastructure
+ */ 
+
+//Project the structured light implementation pattern and capture it
+Mat slFileInfrastructure::projectAndCapture(Mat patternMat) {
+	DB("-> slFileInfrastructure::projectAndCapture()")
+			
+	stringstream captureFilename;
+
+	captureFilename << experiment->getImplementation()->getIdentifier() << OS_SEP << "capture_" << experiment->getIterationIndex() << ".png" ;
+	DB("reading file " << captureFilename.str().c_str());
+	Mat captureMat;
+	ifstream file(captureFilename.str());
+	if (file.good()) {
+		captureMat = imread(captureFilename.str().c_str());
+	} else {
+		DB("WARNING: file \"" << captureFilename.str() << "\" does not exist")
+	}
+	file.close();
+	DB("<- slFileInfrastructure::projectAndCapture()")
 
 	return captureMat;
 }

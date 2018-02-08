@@ -31,6 +31,8 @@ if __name__ == "__main__":
 	cameraHeight = int(argv[4])
 	cameraHorizontalFOV = float(argv[5])
 	projectorHorizontalFOV = float(argv[6])
+	halfCameraProjectorSeparation = float(argv[7]) / 2.0
+	saveBlenderFile = (argv[8] == "true")
 
 	jsonData = json.loads(open(os.path.abspath("./slVirtualScene.json")).read())
 
@@ -61,25 +63,25 @@ if __name__ == "__main__":
 	#bpy.ops.import_scene.obj(filepath="/Users/ehendrikd/Downloads/GI Joe - The Rock/TheRock2.obj")
 	#obj = bpy.context.object
 	#obj.scale = (0.2, 0.2, 0.2)
-		
 
-	projectorObjectJson = jsonData['projector']
-
-	bpy.ops.object.lamp_add(type='SPOT', location=getTuple(projectorObjectJson['location']), rotation=getTuple(projectorObjectJson['rotation'], True))
+	radians90 = math.radians(90)
+        
+	bpy.ops.object.lamp_add(type='SPOT', location=(0, halfCameraProjectorSeparation, 0), rotation=(0, radians90, 0))
 
 
 	projectorObject = bpy.context.object
-	projectorObject.delta_rotation_euler = getTuple(projectorObjectJson['rotation_euler'], True)
+	projectorObject.delta_rotation_euler = (radians90, 0, 0)
 
 	projector = projectorObject.data
 
-	projector.distance = getNumber(projectorObjectJson['focal_length'])
+	#projector.distance = 10
 	projector.spot_size = math.radians(projectorHorizontalFOV)
 	projector.use_square = True
 	projector.show_cone = True
-	projector.energy = getNumber(projectorObjectJson['intensity'])
+	projector.energy = 500
 	#projector.falloff_type = 'CONSTANT'
 	projector.spot_blend = 0
+	projector.shadow_buffer_clip_end = 1000
 
 	image = bpy.data.images.load(patternPath)
 	texture = bpy.data.textures.new('ColorTex', type = 'IMAGE')
@@ -96,9 +98,7 @@ if __name__ == "__main__":
 	#except:
 	#    raise NameError("Cannot load image %s" % realpath)
 
-	cameraObjectJson = jsonData['camera']
-
-	bpy.ops.object.camera_add(location=getTuple(cameraObjectJson['location']), rotation=getTuple(cameraObjectJson['rotation'], True))
+	bpy.ops.object.camera_add(location=(0, -halfCameraProjectorSeparation, 0), rotation=(radians90, 0, radians90))
 	camera = bpy.context.object
 	camera.data.angle_x = math.radians(cameraHorizontalFOV)
 	#camera.data.type = 'ORTHO'
@@ -112,7 +112,7 @@ if __name__ == "__main__":
 
 	bpy.context.scene.render.filepath = capturePath
 
-	if jsonData['save_scene_file']:
+	if saveBlenderFile:
 		bpy.ops.wm.save_as_mainfile(filepath=outputPath)
 
 	bpy.ops.render.render( write_still=True ) 

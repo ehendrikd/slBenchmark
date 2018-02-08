@@ -3,6 +3,10 @@
 RaycastImplementation::RaycastImplementation(int newWidth): slImplementation(string("RaycastImplementation")), width(newWidth) {
 }
 
+void RaycastImplementation::preExperimentRun() {
+	((slBlenderVirtualInfrastructure *)experiment->getInfrastructure())->saveBlenderFile = true;
+}
+
 double RaycastImplementation::getPatternWidth() {
 	return (double)width;
 }
@@ -29,14 +33,14 @@ void RaycastImplementation::postIterationsProcess() {
 	outputFilename << experiment->getPath() << "raycast_depth.xyz";
 
 	slInfrastructure *infrastructure = experiment->getInfrastructure();
-	Size projectorResolution = infrastructure->getProjectorResolution();
+	Size cameraResolution = infrastructure->getCameraResolution();
 
 	blenderCommandLine
 		<< "blender -b -P RaycastDepth.py -- "
 			<< blenderFilename.str() << " "
 			<< outputFilename.str() << " "
 			<< width << " "
-			<< (int)projectorResolution.height;
+			<< (int)cameraResolution.height;
 
 	DB("blenderCommandLine: " << blenderCommandLine.str())
 
@@ -59,5 +63,6 @@ void RaycastImplementation::postIterationsProcess() {
 		experiment->storeResult(&result);
 	}
 
+	((slBlenderVirtualInfrastructure *)experiment->getInfrastructure())->saveBlenderFile = false;
 	//remove(outputFilename.str().c_str());
 }

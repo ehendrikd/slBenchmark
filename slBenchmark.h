@@ -39,8 +39,10 @@
 #define DEFAULT_CAMERA_PROJECTOR_HEIGHT		1080
 
 //Default camera/projector FOV
-#define DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV	49.134
-#define DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV	28.841
+#define DEFAULT_CAMERA_HORIZONTAL_FOV		49.134
+#define DEFAULT_CAMERA_VERTICAL_FOV		28.841
+#define DEFAULT_PROJECTOR_HORIZONTAL_FOV	20.0
+#define DEFAULT_PROJECTOR_VERTICAL_FOV		20.0
 
 //Default camera projector separation
 #define DEFAULT_CAMERA_PROJECTOR_SEPARATION	1
@@ -143,8 +145,8 @@ class slCameraDevice {
 		slCameraDevice(
 			int newResolutionWidth = DEFAULT_CAMERA_PROJECTOR_WIDTH,
 			int newResolutionHeight = DEFAULT_CAMERA_PROJECTOR_HEIGHT,
-			double newHorizontalFOV = DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV,
-			double newVerticalFOV = DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV,
+			double newHorizontalFOV = DEFAULT_CAMERA_HORIZONTAL_FOV,
+			double newVerticalFOV = DEFAULT_CAMERA_VERTICAL_FOV,
 			string newCameraPipe = string(DEFAULT_CAMERA_PIPE),
 			int newCameraIndex = DEFAULT_CAMERA_INDEX
 		): 
@@ -178,8 +180,8 @@ class slProjectorDevice {
 		slProjectorDevice(
 			int newResolutionWidth = DEFAULT_CAMERA_PROJECTOR_WIDTH,
 			int newResolutionHeight = DEFAULT_CAMERA_PROJECTOR_HEIGHT,
-			double newHorizontalFOV = DEFAULT_CAMERA_PROJECTOR_HORIZONTAL_FOV,
-			double newVerticalFOV = DEFAULT_CAMERA_PROJECTOR_VERTICAL_FOV
+			double newHorizontalFOV = DEFAULT_PROJECTOR_HORIZONTAL_FOV,
+			double newVerticalFOV = DEFAULT_PROJECTOR_VERTICAL_FOV
 		):
 			resolution(Size(newResolutionWidth, newResolutionHeight)),
 			horizontalFOV(newHorizontalFOV), 
@@ -280,7 +282,28 @@ class slInfrastructure {
 class slBlenderVirtualInfrastructure : public slInfrastructure {
 	public:
 		//Create a blender virtual infrastruture instance
-		slBlenderVirtualInfrastructure(): slInfrastructure(string("slBlenderVirtualInfrastructure")) {};
+		slBlenderVirtualInfrastructure(
+			slInfrastructureSetup newInfrastructureSetup = slInfrastructureSetup()
+		): 
+			slInfrastructure(
+				string("slBlenderVirtualInfrastructure"), 
+				slInfrastructureSetup(
+					newInfrastructureSetup.cameraDevice,
+					//Limitation of blender spot spight projector, can only be square, horizontal sizes used
+					slProjectorDevice(
+						(int)newInfrastructureSetup.projectorDevice.resolution.width,
+						(int)newInfrastructureSetup.projectorDevice.resolution.width,
+						newInfrastructureSetup.projectorDevice.horizontalFOV,
+						newInfrastructureSetup.projectorDevice.horizontalFOV
+					),
+					newInfrastructureSetup.cameraProjectorSeparation
+				)
+			),
+			saveBlenderFile(false)
+		{};
+
+		//Check if saving blender file
+		bool saveBlenderFile;
 
 		//Project the structured light implementation pattern and capture it
 		Mat projectAndCapture(Mat);
@@ -290,10 +313,7 @@ class slBlenderVirtualInfrastructure : public slInfrastructure {
 class slPhysicalInfrastructure : public slInfrastructure {
 	public:
 		//Create a physical infrastruture instance
-		slPhysicalInfrastructure(
-			slInfrastructureSetup newInfrastructureSetup = slInfrastructureSetup(),
-			int newWaitTime = DEFAULT_WAIT_TIME
-		): 
+		slPhysicalInfrastructure(slInfrastructureSetup newInfrastructureSetup, int newWaitTime = DEFAULT_WAIT_TIME): 
 			slInfrastructure(string("slPhysicalInfrastructure"), newInfrastructureSetup),
 			waitTime(newWaitTime)
 		{};
@@ -304,6 +324,18 @@ class slPhysicalInfrastructure : public slInfrastructure {
 	private:
 		//The wait (pause) time in milliseconds between each projection and capture
 		int waitTime;
+};
+
+//A simple infrastructure class that reads capture files stored in the system, for example as a result of a previous experiment
+class slFileInfrastructure : public slInfrastructure {
+	public:
+		//Create a file infrastruture instance
+		slFileInfrastructure(slInfrastructureSetup newInfrastructureSetup): 
+			slInfrastructure(string("slFileInfrastructure"), newInfrastructureSetup)
+       		{};
+
+		//Project the structured light implementation pattern and capture it
+		Mat projectAndCapture(Mat);
 };
 
 //Abstract class that defines a result from a particular experiment

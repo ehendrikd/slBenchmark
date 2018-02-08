@@ -50,6 +50,30 @@ double SingleLineImplementation::solveCorrespondence(int xProjector, int y) {
 	Mat lineMat = experiment->getCaptureAt(xProjector / interlines);
 	int cameraWidth = experiment->getInfrastructure()->getCameraResolution().width;
 
+	double columnMax = 0.0;
+	int foundColumn = -1;
+
+	for (int column = 0; column < cameraWidth; column++) {
+		Vec3b pixelBGR = lineMat.at<Vec3b>(y, column);
+
+		double colourTotal = (double)(pixelBGR[0] + pixelBGR[1] + pixelBGR[2]);
+
+		if (colourTotal >= SINGLE_LINE_BLACK_THRESHOLD && colourTotal > columnMax) {
+			columnMax = colourTotal;
+			foundColumn = column;
+		}
+
+	}
+
+	return (double)foundColumn;
+}
+
+/*
+double SingleLineImplementation::solveCorrespondence(int xProjector, int y) {
+	if (xProjector % interlines != 0) return -1;
+	Mat lineMat = experiment->getCaptureAt(xProjector / interlines);
+	int cameraWidth = experiment->getInfrastructure()->getCameraResolution().width;
+
 	double lineTotal = 0.0;
 	double aTotal = 0.0;
 
@@ -68,4 +92,4 @@ double SingleLineImplementation::solveCorrespondence(int xProjector, int y) {
 	
 	return aTotal / lineTotal;
 }
-
+*/

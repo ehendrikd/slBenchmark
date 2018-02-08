@@ -9,6 +9,7 @@ class RaycastImplementation : public slImplementation {
 	public:
 		RaycastImplementation(int);
 		virtual ~RaycastImplementation() {};
+		void preExperimentRun();
 		virtual double getPatternWidth();
 		virtual Mat generatePattern();
 		virtual void postIterationsProcess();
