@@ -247,7 +247,7 @@ Mat slFileInfrastructure::projectAndCapture(Mat patternMat) {
 	captureFilename << experiment->getImplementation()->getIdentifier() << OS_SEP << "capture_" << experiment->getIterationIndex() << ".png" ;
 	DB("reading file " << captureFilename.str().c_str());
 	Mat captureMat;
-	ifstream file(captureFilename.str());
+	ifstream file(captureFilename.str().c_str());
 	if (file.good()) {
 		captureMat = imread(captureFilename.str().c_str());
 	} else {

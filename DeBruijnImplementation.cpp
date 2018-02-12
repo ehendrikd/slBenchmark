@@ -4,6 +4,9 @@ DeBruijnImplementation::DeBruijnImplementation(unsigned int newNumColumns): slIm
 }
 
 void DeBruijnImplementation::preExperimentRun() {
+//	Vec3s transition(1,0,0), difference(85,80,80);
+//	DB("score: " << score(transition, difference))	
+
 	transitions = new Vec3s[getNumberEdges()];
 }
 
