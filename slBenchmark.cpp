@@ -191,14 +191,10 @@ Mat slBlenderVirtualInfrastructure::projectAndCapture(Mat patternMat) {
  * slPhysicalInfrastructure
  */ 
 
-//Project the structured light implementation pattern and capture it
-Mat slPhysicalInfrastructure::projectAndCapture(Mat patternMat) {
-	DB("-> slPhysicalInfrastructure::projectAndCapture()")
-
+//Create a physical infrastruture instance
+slPhysicalInfrastructure::slPhysicalInfrastructure(slInfrastructureSetup newInfrastructureSetup, int newWaitTime): slInfrastructure(string("slPhysicalInfrastructure"), newInfrastructureSetup), waitTime(newWaitTime) {
 	slCameraDevice cameraDevice = infrastructureSetup.cameraDevice;
 	bool isPipe = cameraDevice.cameraPipe.length() > 0;
-
-	VideoCapture videoCapture;
 
 	if (isPipe) {
 		videoCapture = VideoCapture(cameraDevice.cameraPipe.c_str());
@@ -213,6 +209,17 @@ Mat slPhysicalInfrastructure::projectAndCapture(Mat patternMat) {
 			FATAL("Could not open camera index: " << cameraDevice.cameraIndex)
 		}
 	}
+	
+}
+
+//Clean up
+slPhysicalInfrastructure::~slPhysicalInfrastructure() {
+	videoCapture.release();
+}
+
+//Project the structured light implementation pattern and capture it
+Mat slPhysicalInfrastructure::projectAndCapture(Mat patternMat) {
+	DB("-> slPhysicalInfrastructure::projectAndCapture()")
 
 	Mat captureMat;
 
@@ -226,8 +233,6 @@ Mat slPhysicalInfrastructure::projectAndCapture(Mat patternMat) {
 	videoCapture >> captureMat;
 
 	waitKey(waitTime);
-
-	videoCapture.release();
 
 	DB("<- slPhysicalInfrastructure::projectAndCapture()")
 

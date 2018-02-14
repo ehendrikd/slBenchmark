@@ -43,13 +43,14 @@ int main() {
 	slSpeedDepthExperiment singleLineExperiment(currentInfrastructure, &singleLineImplementation);
 	slSpeedDepthExperiment raycastExperiment(&blenderVirtualInfrastructure, &raycastImplementation);
 
-//	binaryExperiment.run();
-//	grayCodedBinaryExperiment.run();
+	singleLineExperiment.run();
+	binaryExperiment.run();
+	grayCodedBinaryExperiment.run();
 	deBruijnExperiment.run();
 //	psmExperiment.run();
 //	raycastExperiment.run();
 //	singleLineExperiment.run();
-/*	
+	
 //	slBenchmark benchmark(&raycastExperiment);
 	slBenchmark benchmark(&singleLineExperiment);
 
@@ -57,20 +58,20 @@ int main() {
 	benchmark.addExperiment(&grayCodedBinaryExperiment);
 	benchmark.addExperiment(&deBruijnExperiment);
 //	benchmark.addExperiment(&psmExperiment);
-	benchmark.addExperiment(&singleLineExperiment);
+//	benchmark.addExperiment(&singleLineExperiment);
 
 	benchmark.addMetric(new slSpeedMetric());
 	benchmark.addMetric(new slAccuracyMetric());
 	benchmark.addMetric(new slResolutionMetric());
 
 	benchmark.compareExperiments();
-*/
-//	sl3DReconstructor::writeXYZPointCloud(&binaryExperiment);
-//	sl3DReconstructor::writeXYZPointCloud(&grayCodedBinaryExperiment);
+
+	sl3DReconstructor::writeXYZPointCloud(&binaryExperiment);
+	sl3DReconstructor::writeXYZPointCloud(&grayCodedBinaryExperiment);
 	sl3DReconstructor::writeXYZPointCloud(&deBruijnExperiment);
 //	sl3DReconstructor::writeXYZPointCloud(&psmExperiment);
 //	sl3DReconstructor::writeXYZPointCloud(&raycastExperiment);
-//	sl3DReconstructor::writeXYZPointCloud(&singleLineExperiment);
+	sl3DReconstructor::writeXYZPointCloud(&singleLineExperiment);
 
 	return 0;
 }

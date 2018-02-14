@@ -313,10 +313,10 @@ class slBlenderVirtualInfrastructure : public slInfrastructure {
 class slPhysicalInfrastructure : public slInfrastructure {
 	public:
 		//Create a physical infrastruture instance
-		slPhysicalInfrastructure(slInfrastructureSetup newInfrastructureSetup, int newWaitTime = DEFAULT_WAIT_TIME): 
-			slInfrastructure(string("slPhysicalInfrastructure"), newInfrastructureSetup),
-			waitTime(newWaitTime)
-		{};
+		slPhysicalInfrastructure(slInfrastructureSetup newInfrastructureSetup, int newWaitTime = DEFAULT_WAIT_TIME); 
+
+		//Clean up
+		virtual ~slPhysicalInfrastructure();
 
 		//Project the structured light implementation pattern and capture it
 		Mat projectAndCapture(Mat);
@@ -324,6 +324,9 @@ class slPhysicalInfrastructure : public slInfrastructure {
 	private:
 		//The wait (pause) time in milliseconds between each projection and capture
 		int waitTime;
+
+		//The video capture object
+		VideoCapture videoCapture;
 };
 
 //A simple infrastructure class that reads capture files stored in the system, for example as a result of a previous experiment
