@@ -16,8 +16,7 @@ class BinaryImplementation : public slImplementation {
 	        virtual double getPatternWidth();
 		bool hasMoreIterations();
 		virtual Mat generatePattern();
-		virtual void iterationProcess();
-		//virtual void postIterationsProcess();
+		virtual void processCapture(Mat);
 		//Getters and Setters
 		virtual double getBinaryCode(int, int);
 		int getNumberPatterns();

@@ -1,7 +1,6 @@
 #include "SingleLineImplementation.h"
 
 SingleLineImplementation::SingleLineImplementation(int newNumberColumns): slImplementation(string("SingleLineImplementation")), numberColumns(newNumberColumns) {
-	interlines = 1;
 }
 
 void SingleLineImplementation::preExperimentRun() {
@@ -21,7 +20,7 @@ void SingleLineImplementation::postExperimentRun() {
 }
 
 bool SingleLineImplementation::hasMoreIterations() {
-        return experiment->getIterationIndex() < numberColumns / interlines+1;
+        return experiment->getIterationIndex() < numberColumns;
 }
 
 double SingleLineImplementation::getPatternWidth() {
@@ -32,7 +31,7 @@ Mat SingleLineImplementation::generatePattern() {
 	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
 
 	double columnWidth = (double)projectorResolution.width / (double)numberColumns;
-	int columnOffset = (int)((double)experiment->getIterationIndex() * interlines * columnWidth);
+	int columnOffset = (int)((double)experiment->getIterationIndex() * columnWidth);
 
 	int projectorWidth = (int)projectorResolution.width;
 	int projectorHeight = (int)projectorResolution.height;
@@ -45,9 +44,44 @@ Mat SingleLineImplementation::generatePattern() {
 	return pattern;
 }
 
+void SingleLineImplementation::processCapture(Mat captureMat) {
+	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
+	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
+
+	for (int y = 0; y < cameraResolution.height; y++) {
+		double columnMax = 0.0;
+		int foundColumn = -1;
+
+		for (int column = 0; column < cameraResolution.width; column++) {
+			Vec3b pixelBGR = captureMat.at<Vec3b>(y, column);
+
+			double colourTotal = (double)(pixelBGR[0] + pixelBGR[1] + pixelBGR[2]);
+	
+			if (colourTotal >= SINGLE_LINE_BLACK_THRESHOLD && colourTotal > columnMax) {
+				columnMax = colourTotal;
+				foundColumn = column;
+				break;
+			}
+
+		}
+
+		double xCamera = (double)foundColumn;	
+
+		if (!isnan(xCamera) && xCamera != -1) {				
+			int xPattern = experiment->getIterationIndex();	
+			double displacement = experiment->getDisplacement(xPattern, xCamera);
+			int xProjector = (int)(experiment->getImplementation()->getPatternXOffsetFactor(xPattern) * projectorResolution.width);
+
+			if (!isinf(displacement)) {
+				slDepthExperimentResult result(xProjector, y, displacement);
+				experiment->storeResult(&result);
+			}
+		}
+	}
+}
+/*
 double SingleLineImplementation::solveCorrespondence(int xProjector, int y) {
-	if (xProjector % interlines != 0) return -1;
-	Mat lineMat = experiment->getCaptureAt(xProjector / interlines);
+	Mat lineMat = experiment->getCaptureAt(xProjector);
 	int cameraWidth = experiment->getInfrastructure()->getCameraResolution().width;
 
 	double columnMax = 0.0;
@@ -67,11 +101,10 @@ double SingleLineImplementation::solveCorrespondence(int xProjector, int y) {
 
 	return (double)foundColumn;
 }
-
+*/
 /*
 double SingleLineImplementation::solveCorrespondence(int xProjector, int y) {
-	if (xProjector % interlines != 0) return -1;
-	Mat lineMat = experiment->getCaptureAt(xProjector / interlines);
+	Mat lineMat = experiment->getCaptureAt(xProjector);
 	int cameraWidth = experiment->getInfrastructure()->getCameraResolution().width;
 
 	double lineTotal = 0.0;

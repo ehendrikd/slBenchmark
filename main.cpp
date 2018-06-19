@@ -43,13 +43,12 @@ int main() {
 	slSpeedDepthExperiment singleLineExperiment(currentInfrastructure, &singleLineImplementation);
 	slSpeedDepthExperiment raycastExperiment(&blenderVirtualInfrastructure, &raycastImplementation);
 
-	singleLineExperiment.run();
 	binaryExperiment.run();
 	grayCodedBinaryExperiment.run();
 	deBruijnExperiment.run();
 //	psmExperiment.run();
 //	raycastExperiment.run();
-//	singleLineExperiment.run();
+	singleLineExperiment.run();
 	
 //	slBenchmark benchmark(&raycastExperiment);
 	slBenchmark benchmark(&singleLineExperiment);

@@ -86,6 +86,10 @@ Mat DeBruijnImplementation::generatePattern() {
 	return pattern;
 }
 
+void DeBruijnImplementation::processCapture(Mat captureMat) {
+	experiment->storeCapture(captureMat);
+}
+
 void DeBruijnImplementation::postIterationsProcess() {
 	slInfrastructure *infrastructure = experiment->getInfrastructure();
 	Size cameraResolution = infrastructure->getCameraResolution();

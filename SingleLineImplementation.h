@@ -20,14 +20,13 @@ class SingleLineImplementation : public slImplementation {
 		bool hasMoreIterations();
 		virtual double getPatternWidth();
 		virtual Mat generatePattern();
-		//virtual void iterationProcess();
-		//virtual void postIterationsProcess();
-		virtual double solveCorrespondence(int, int);
+		virtual void processCapture(Mat);
+		virtual void postIterationsProcess() {};
+		//virtual double solveCorrespondence(int, int);
 
 	protected:
 		int numberColumns;
 		double *originalColumn;
-		int interlines;
 };
 
 #endif //SINGLE_LINE_IMPLEMENTATION_H

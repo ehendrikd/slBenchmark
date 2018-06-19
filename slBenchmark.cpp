@@ -68,17 +68,10 @@ bool slImplementation::hasMoreIterations() {
 
 //Process after the interations
 void slImplementation::postIterationsProcess() {
-	processCaptures();
-	iterateCorrespondences();
-}
-
-//Iterate through the captures to solve the correseponce problem
-void slImplementation::iterateCorrespondences() {
 	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
 
 	for (int y = 0; y < cameraResolution.height; y++) {
-	//for (int y = 98; y <= 656; y++) {
 		for (int xPattern = 0; xPattern < getPatternWidth(); xPattern++) {
 			double xCamera = solveCorrespondence(xPattern, y);	
 
@@ -390,35 +383,30 @@ void slExperiment::run() {
 
 		DB("infrastructure->projectAndCapture() complete.")
 
-		//Store the capture for processing
-		storeCapture(captureMat);
-		//storeCapture(captureMat);
-		DB("after")
-
 		//Create current capture file path
 		captureFileStream << capturesPathStream.str() << OS_SEP << "capture_" << iterationIndex << ".png";
 
 		//Save the capture to the implementation's captures
 		imwrite(captureFileStream.str(), captureMat);
 
-		//Allow the implementation to process during this iteration
-		DB("About to implementation->iterationProcess()...")
+		//Allow the implementation to process the capture
+		DB("About to implementation->processCapture()...")
 
 
 
 
-		//Run before the implementation processes this iteration
-		runPreIterationProcess();
+		//Run before the implementation processes this capture
+		runPreProcessCapture();
 
-		implementation->iterationProcess();
+		implementation->processCapture(captureMat);
 
-		//Run after the implementation processes this iteration
-		runPostIterationProcess();
-
-
+		//Run after the implementation processes this capture
+		runPostProcessCapture();
 
 
-		DB("implementation->iterationProcess() complete.")
+
+
+		DB("implementation->processCapture() complete.")
 
 		DB("Iteration #" << iterationIndex << " complete.")
 

@@ -116,7 +116,9 @@ Mat BinaryImplementation::generatePattern() {
 	return pattern;
 }
 
-void BinaryImplementation::iterationProcess() {
+void BinaryImplementation::processCapture(Mat captureMat) {
+	experiment->storeCapture(captureMat);
+
 	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 
 	if (experiment->getIterationIndex() % 2 != 0) {
@@ -148,24 +150,7 @@ void BinaryImplementation::iterationProcess() {
 		}	
 	}
 }
-/*
-void BinaryImplementation::processCaptures() {
-	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 
-	int lookupArraySize = cameraResolution.height * numColumns;
-	int arraySize = cameraResolution.width * cameraResolution.height;
-	
-	projectorColumnLookup = new int[lookupArraySize];
-
-	for (int index = 0; index < lookupArraySize; index++) {
-		projectorColumnLookup[index] = -1;
-	}
-
-	for (int index = 0; index < arraySize; index++) {
-		
-	}
-}
-*/
 double BinaryImplementation::solveCorrespondence(int xProjector, int y) {
 	static double lastBinaryCode = -1;
 

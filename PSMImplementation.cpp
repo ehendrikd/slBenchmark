@@ -86,6 +86,10 @@ Mat PSMImplementation::generatePattern() {
 	return pattern;
 }
 
+void PSMImplementation::processCapture(Mat captureMat) {
+	experiment->storeCapture(captureMat);
+}
+
 void PSMImplementation::postIterationsProcess() {
 	phaseWrap();
 	phaseUnwrap();

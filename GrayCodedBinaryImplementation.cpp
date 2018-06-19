@@ -54,7 +54,9 @@ double GrayCodedBinaryImplementation::getBinaryCode(int xProjector, int y) {
 
 
 /* FOR ADAPTIVE!!!!
-void GrayCodedBinaryImplementation::iterationProcess() {
+void GrayCodedBinaryImplementation::processCapture(Mat captureMat) {
+	experiment->stireCapture(captureMat);
+
 	if (benchmark->getIterationIndex() % 2 != 0) {
 
 		Mat positiveMat = getCaptureAt(getNumberCaptures() - 2);

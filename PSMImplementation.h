@@ -42,6 +42,7 @@ class PSMImplementation : public slImplementation {
 		bool hasMoreIterations();
 		virtual double getPatternWidth();
 		virtual Mat generatePattern();
+		virtual void processCapture(Mat);
 		virtual void postIterationsProcess();
 		unsigned int getNumberColumns();
 

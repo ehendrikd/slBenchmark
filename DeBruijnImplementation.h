@@ -32,7 +32,9 @@ class DeBruijnImplementation : public slImplementation {
 		bool hasMoreIterations();
 		virtual Mat generatePattern();
 		void calculateCroppedCapture();
+		virtual void processCapture(Mat);
 		virtual void postIterationsProcess();
+		
 		unsigned int getNumberColumns();
 		unsigned int getNumberEdges();
 

@@ -107,20 +107,13 @@ class slImplementation {
 		//Generate the structure light pattern
 		virtual Mat generatePattern() = 0;
 
-		//Process during an interation
-		virtual void iterationProcess() {};
+		//Process a capture
+		virtual void processCapture(Mat) {};
 
 		//Process after the interations
 		virtual void postIterationsProcess();
 		
-		//Process the capture(s)
-		virtual void processCaptures() {};
-
-		//Iterate through the captures to solve the correseponce problem
-		virtual void iterateCorrespondences();
-
 		//Solve the correspondence problem
-		//virtual double solveCorrespondence(int, int) = 0; 
 		virtual double solveCorrespondence(int, int) {return 0;} 
 
 		//A reference to the current experiment
@@ -387,11 +380,11 @@ class slExperiment {
 		//Run after pattern is projected and captured
 		virtual void runPostProjectAndCapture() {};
 
-		//Run before the implementation processes this iteration
-		virtual void runPreIterationProcess() {};
+		//Run before the implementation processes the capture
+		virtual void runPreProcessCapture() {};
 
-		//Run after the implementation processes this iteration
-		virtual void runPostIterationProcess() {};
+		//Run after the implementation processes the capture
+		virtual void runPostProcessCapture() {};
 
 		//Run after this iteration has completed
 		virtual void runPostIteration() {};
