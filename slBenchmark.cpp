@@ -538,9 +538,10 @@ if (temp) {
  */ 
 
 //Create a depth experiment
-slDepthExperiment::slDepthExperiment(slInfrastructure *newlInfrastructure, slImplementation *newImplementation) : slExperiment(newlInfrastructure, newImplementation), depthData(NULL) {
-	numDepthDataValues = infrastructure->getProjectorResolution().width * infrastructure->getCameraResolution().height;
-	//numDepthDataValues = implementation->getPatternWidth() * infrastructure->getCameraResolution().height;
+slDepthExperiment::slDepthExperiment(slInfrastructure *newlInfrastructure, slImplementation *newImplementation) : slExperiment(newlInfrastructure, newImplementation)/*, depthData(NULL)*/ {
+/*
+	//numDepthDataValues = infrastructure->getProjectorResolution().width * infrastructure->getCameraResolution().height;
+	numDepthDataValues = implementation->getPatternWidth() * infrastructure->getCameraResolution().height;
 
 	depthDataValued = new bool[numDepthDataValues];
 	depthData = new double[numDepthDataValues];
@@ -549,40 +550,59 @@ slDepthExperiment::slDepthExperiment(slInfrastructure *newlInfrastructure, slImp
 		depthDataValued[index] = false;
 		depthData[index] = 0.0;
 	}
+*/
+	int width = implementation->getPatternWidth();
+	int height = infrastructure->getCameraResolution().height;
+
+	for (int x = 0; x < width; x++) {
+		for (int y = 0; y < height; y++) {
+			depthDataValued[x][y] = false;
+			depthData[x][y] = 0.0;
+		}
+	}
 }
 
 //Clean up
 slDepthExperiment::~slDepthExperiment() {
+/*
 	if (depthData != NULL) {
 		delete[] depthDataValued;
 		delete[] depthData;
 	}
+*/
 }
 
 //Store a result of this experiment
 void slDepthExperiment::storeResult(slExperimentResult *experimentResult) {
 	slDepthExperimentResult *depthExperimentResult = (slDepthExperimentResult *)experimentResult;
-
-	int arrayOffset = (depthExperimentResult->y * infrastructure->getProjectorResolution().width) + depthExperimentResult->x;
-	//int arrayOffset = (depthExperimentResult->y * implementation->getPatternWidth()) + depthExperimentResult->x;
+/*
+	//int arrayOffset = (depthExperimentResult->y * infrastructure->getProjectorResolution().width) + depthExperimentResult->x;
+	int arrayOffset = (depthExperimentResult->y * implementation->getPatternWidth()) + depthExperimentResult->x;
 	
-	depthDataValued[arrayOffset] = true;
-	depthData[arrayOffset] = depthExperimentResult->z;
+	depthDataValued[arrayOffset] = false;
+	//depthData[arrayOffset] = depthExperimentResult->z;
+*/
+	depthDataValued[depthExperimentResult->x][depthExperimentResult->y] = true;
+	depthData[depthExperimentResult->x][depthExperimentResult->y] = depthExperimentResult->z;
 }
-
+/*
 //Get the number of depth data values
 int slDepthExperiment::getNumDepthDataValues() {
 	return numDepthDataValues;
 }
-
+*/
 //Check if depth data value has been set
-bool slDepthExperiment::isDepthDataValued(int index) {
-	return depthDataValued[index];
+//bool slDepthExperiment::isDepthDataValued(int index) {
+bool slDepthExperiment::isDepthDataValued(int x, int y) {
+	//return depthDataValued[index];
+	return depthDataValued[x][y];
 }
 
 //Get depth data value
-double slDepthExperiment::getDepthData(int index) {
-	return depthData[index];
+//double slDepthExperiment::getDepthData(int index) {
+double slDepthExperiment::getDepthData(int x, int y) {
+	//return depthData[index];
+	return depthData[x][y];
 }
 
 /*
@@ -755,19 +775,26 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *reference
 
 	DB("Ref: " << referenceDepthExperiment->getIdentifier() << " vs " << depthExperiment->getIdentifier() << " accuracy diff: " << totalDifference)
 */
-	Size referenceCameraResolutuion = referenceDepthExperiment->getInfrastructure()->getCameraResolution();
-	Size referenceProjectorResolutuion = referenceDepthExperiment->getInfrastructure()->getProjectorResolution();
-	Size cameraResolutuion = depthExperiment->getInfrastructure()->getCameraResolution();
-	Size projectorResolutuion = depthExperiment->getInfrastructure()->getProjectorResolution();
 
-	if (referenceProjectorResolutuion.width != projectorResolutuion.width || referenceCameraResolutuion.height != cameraResolutuion.height) {
+
+	Size referenceCameraResolution = referenceDepthExperiment->getInfrastructure()->getCameraResolution();
+	Size referenceProjectorResolution = referenceDepthExperiment->getInfrastructure()->getProjectorResolution();
+	Size cameraResolution = depthExperiment->getInfrastructure()->getCameraResolution();
+	Size projectorResolution = depthExperiment->getInfrastructure()->getProjectorResolution();
+
+	if (referenceProjectorResolution.width != projectorResolution.width || referenceCameraResolution.height != cameraResolution.height) {
 		DB("ERROR: To compare depth accuracy, both experiments need to have the same projector width and camera height.")
 		return;
 	}
 
-	double *depthDifferences = new double[depthExperiment->getNumDepthDataValues()];
-	double maxDepthDifference = 0;
+	int numPatternColumns = projectorResolution.width;
+	//int numPatternColumns = depthExperiment->getImplementation()->getPatternWidth();
+	int cameraHeight = cameraResolution.height;
 
+//	double *depthDifferences = new double[depthExperiment->getNumDepthDataValues()];
+	map<int, map<int, double> > depthDifferences;	
+	double maxDepthDifference = 0;
+/*
 	for (int depthDataIndex = 0; depthDataIndex < depthExperiment->getNumDepthDataValues(); depthDataIndex++) {
 		if (referenceDepthExperiment->isDepthDataValued(depthDataIndex) && depthExperiment->isDepthDataValued(depthDataIndex)) {
 			depthDifferences[depthDataIndex] = referenceDepthExperiment->getDepthData(depthDataIndex) - depthExperiment->getDepthData(depthDataIndex);
@@ -781,6 +808,22 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *reference
 			}	
 		}
 	}
+*/
+	for (int x = 0; x < numPatternColumns; x++) {
+		for (int y = 0; y < cameraHeight; y++) {
+			if (referenceDepthExperiment->isDepthDataValued(x, y) && depthExperiment->isDepthDataValued(x, y)) {
+				depthDifferences[x][y] = referenceDepthExperiment->getDepthData(x, y) - depthExperiment->getDepthData(x, y);
+
+				if (depthDifferences[x][y] < 0) {
+					depthDifferences[x][y] = -depthDifferences[x][y];
+				}
+
+				if (depthDifferences[x][y] > maxDepthDifference) {
+					maxDepthDifference = depthDifferences[x][y];
+				}	
+			}
+		}
+	}
 
 	double binSize = 0.001;
 	int histogramSize = (int)ceil(maxDepthDifference / binSize);
@@ -790,7 +833,7 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *reference
 		histogram[histogramIndex] = 0;
 	}
 	DB("histogramSize: " << histogramSize)
-
+/*
 	for (int depthDataIndex = 0; depthDataIndex < depthExperiment->getNumDepthDataValues(); depthDataIndex++) {
 		if (referenceDepthExperiment->isDepthDataValued(depthDataIndex) && depthExperiment->isDepthDataValued(depthDataIndex)) {
 			double depthDifference = depthDifferences[depthDataIndex] / binSize;
@@ -798,8 +841,18 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *reference
 			histogram[(int)floor(depthDifference)]++;
 		}
 	}
+*/
+	for (int x = 0; x < numPatternColumns; x++) {
+		for (int y = 0; y < cameraHeight; y++) {
+			if (referenceDepthExperiment->isDepthDataValued(x, y) && depthExperiment->isDepthDataValued(x, y)) {
+				double depthDifference = depthDifferences[x][y] / binSize;
 
-	delete [] depthDifferences;
+				histogram[(int)floor(depthDifference)]++;
+			}
+		}
+	}
+
+	//delete [] depthDifferences;
 
 	stringstream historgramFileStream;
 	historgramFileStream << slExperiment::getSessionPath() << referenceDepthExperiment->getIdentifier() << "_vs_" << depthExperiment->getIdentifier() << "_accuracy_histogram.csv";
@@ -818,7 +871,7 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *reference
 	outputFileStream.close();
 
 	DB("Accuracy histogram file: " << historgramFileStream.str().c_str())
-	
+
 }
 
 /*
@@ -830,6 +883,30 @@ void slResolutionMetric::compareExperimentAgainstReference(slExperiment *referen
 	slDepthExperiment *referenceDepthExperiment = dynamic_cast<slDepthExperiment *>(referenceExperiment);
 	slDepthExperiment *depthExperiment = dynamic_cast<slDepthExperiment *>(experiment);
 
+	slInfrastructure *infrastructure = depthExperiment->getInfrastructure();
+	int numPatternColumns = infrastructure->getProjectorResolution().width;
+	//int numPatternColumns = depthExperiment->getImplementation()->getPatternWidth();
+	int cameraHeight = infrastructure->getCameraResolution().height;
+
+	int referenceDataValues = 0;
+	int dataValues = 0;
+
+	for (int x = 0; x < numPatternColumns; x++) {
+		for (int y = 0; y < cameraHeight; y++) {
+			if (referenceDepthExperiment->isDepthDataValued(x, y)) {
+				referenceDataValues++;
+			}
+			
+			if (depthExperiment->isDepthDataValued(x, y)) {
+				dataValues++;
+			}
+		}
+	}
+
+	int resolutionDifference = referenceDataValues - dataValues;
+
+	DB("Ref: " << referenceDepthExperiment->getIdentifier() << " vs " << depthExperiment->getIdentifier() << " resolution diff: " << resolutionDifference)
+/*
 	int referenceDataValues = 0;
 	
 	for (int depthDataIndex = 0; depthDataIndex < referenceDepthExperiment->getNumDepthDataValues(); depthDataIndex++) {
@@ -849,6 +926,7 @@ void slResolutionMetric::compareExperimentAgainstReference(slExperiment *referen
 	int resolutionDifference = referenceDataValues - dataValues;
 
 	DB("Ref: " << referenceDepthExperiment->getIdentifier() << " vs " << depthExperiment->getIdentifier() << " resolution diff: " << resolutionDifference)
+*/
 }
 
 /*
@@ -881,10 +959,12 @@ void sl3DReconstructor::writeXYZPointCloud(slDepthExperiment *depthExperiment) {
 
 	for (int x = 0; x < numPatternColumns; x++) {
 		for (int y = 0; y < cameraHeight; y++) {
-			int arrayOffset = (y * numPatternColumns) + x;
+			//int arrayOffset = (y * numPatternColumns) + x;
 
-			if (depthExperiment->isDepthDataValued(arrayOffset)) {
-				double zCoord = depthExperiment->getDepthData(arrayOffset);
+			//if (depthExperiment->isDepthDataValued(arrayOffset)) {
+			if (depthExperiment->isDepthDataValued(x, y)) {
+				//double zCoord = depthExperiment->getDepthData(arrayOffset);
+				double zCoord = depthExperiment->getDepthData(x, y);
 				double xCoord = ((double)x - halfNumPatternColumns) * zCoord * (2.0 * halfProjectorHorizontalFOVRadians / numPatternColumns);
 				double yCoord = ((double)y - halfCameraHeight) * zCoord * (2.0 * halfCameraVerticalFOVRadians / cameraHeight);
 //				if (zCoord > -70 && zCoord < -20) {

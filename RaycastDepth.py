@@ -54,8 +54,7 @@ def getDirections(obj, source, sourceWidth, sourceHeight, outputPath):
 #				if xPixel == 900 and yPixel == 312:
 #					print("xReal[" + str(xReal) + "] = (xPixel[" + str(xPixel) + "]-sourceWidth[" + str(sourceWidth) + "]/2)*zReal[" + str(zReal) + "]*(2*y[" + str(y) + "]/sourceWidth[" + str(sourceWidth) + "]")
 #					print("yReal[" + str(yReal) + "] = (yPixel[" + str(yPixel) + "]-sourceHeight[" + str(sourceHeight) + "]/2)*zReal[" + str(zReal) + "]*(2*z[" + str(z) + "]/sourceHeight[" + str(sourceHeight) + "]")
-				
-
+			
 				outReal.write(str(xReal) + " " + str(yReal) + " " + str(zReal) + '\n')
 				out.write(str(xPixel) + " " + str(yPixel) + " " + str(zReal) + '\n')
 				#out.write(str(fromCamera.y) + " " + str(fromCamera.z) + " " + str(fromCamera.x) + '\n')
@@ -72,20 +71,24 @@ if __name__ == "__main__":
 	sourceHeight = int(argv[3])
 
 	singleObject = None
+	numMeshObjects = 0
 
 	for ob in bpy.context.scene.objects:
 		if ob.type == 'MESH':
 			ob.select = True
 			bpy.context.scene.objects.active = ob			
+			numMeshObjects = numMeshObjects + 1
 		else:
 			ob.select = False
 
-	bpy.ops.object.join()
+	if numMeshObjects > 1:
+		bpy.ops.object.join()
 
 	for ob in bpy.context.scene.objects:
 		if ob.type == 'MESH':
 			singleObject = ob
 
+	bpy.context.scene.update()
 
 	#getDirections(singleObject, bpy.context.scene.camera, sourceWidth, sourceHeight, outputPath)
 	getDirections(singleObject, bpy.context.scene.objects['Spot'], sourceWidth, sourceHeight, outputPath)

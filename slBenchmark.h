@@ -463,23 +463,27 @@ class slDepthExperiment : public virtual slExperiment {
 		virtual void storeResult(slExperimentResult *);
 
 		//Get the number of depth data values
-		int getNumDepthDataValues();
+		//int getNumDepthDataValues();
 
 		//Check if depth data value has been set
-		bool isDepthDataValued(int);
+		//bool isDepthDataValued(int);
+		bool isDepthDataValued(int, int);
 
 		//Get depth data value
-		double getDepthData(int);
+		//double getDepthData(int);
+		double getDepthData(int, int);
 		
 	private:
 		//Number of depth data values
-		int numDepthDataValues;
+		//int numDepthDataValues;
 
 		//Check if the depth data value has been set
-		bool *depthDataValued;
+		//bool *depthDataValued;
+		map<int, map<int, bool> > depthDataValued;
 
 		//The depth data
-		double *depthData;
+		//double *depthData;
+		map<int, map<int, double> > depthData;
 };
 
 //Class that defines a depth experiment result with x, y and z coordinates
