@@ -1,0 +1,11 @@
+{
+	"objects": 
+	[
+		{
+			"type":		"plane",
+			"location":	[-69, 8.75, 0],
+			"rotation":	[0, 90, 0],
+			"scale":	[10.5, 14.85, 1]
+		}
+	]
+}
