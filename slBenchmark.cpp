@@ -723,7 +723,7 @@ void slBenchmark::compareExperiments() {
  */ 
 
 //Compare an experiment against the reference experiment
-void slSpeedMetric::compareExperimentAgainstReference(slExperiment *referenceExperiment, slExperiment *experiment) {
+void slSpeedMetric::compareExperimentAgainstReference(slExperiment *experiment, slExperiment *referenceExperiment) {
 	slSpeedExperiment *referenceSpeedExperiment = dynamic_cast<slSpeedExperiment *>(referenceExperiment);
 	slSpeedExperiment *speedExperiment = dynamic_cast<slSpeedExperiment *>(experiment);
 
@@ -739,7 +739,7 @@ void slSpeedMetric::compareExperimentAgainstReference(slExperiment *referenceExp
  */ 
 
 //Compare an experiment against the reference experiment
-void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *referenceExperiment, slExperiment *experiment) {
+void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *experiment, slExperiment *referenceExperiment) {
 	slDepthExperiment *referenceDepthExperiment = dynamic_cast<slDepthExperiment *>(referenceExperiment);
 	slDepthExperiment *depthExperiment = dynamic_cast<slDepthExperiment *>(experiment);
 /*
@@ -793,7 +793,8 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *reference
 
 //	double *depthDifferences = new double[depthExperiment->getNumDepthDataValues()];
 	map<int, map<int, double> > depthDifferences;	
-	double maxDepthDifference = 0;
+	double maxDepthDifference = numeric_limits<double>::min();
+	double minDepthDifference = numeric_limits<double>::max();
 /*
 	for (int depthDataIndex = 0; depthDataIndex < depthExperiment->getNumDepthDataValues(); depthDataIndex++) {
 		if (referenceDepthExperiment->isDepthDataValued(depthDataIndex) && depthExperiment->isDepthDataValued(depthDataIndex)) {
@@ -813,20 +814,25 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *reference
 		for (int y = 0; y < cameraHeight; y++) {
 			if (referenceDepthExperiment->isDepthDataValued(x, y) && depthExperiment->isDepthDataValued(x, y)) {
 				depthDifferences[x][y] = referenceDepthExperiment->getDepthData(x, y) - depthExperiment->getDepthData(x, y);
-
+/*
 				if (depthDifferences[x][y] < 0) {
 					depthDifferences[x][y] = -depthDifferences[x][y];
 				}
-
+*/
 				if (depthDifferences[x][y] > maxDepthDifference) {
 					maxDepthDifference = depthDifferences[x][y];
+				}	
+				if (depthDifferences[x][y] < minDepthDifference) {
+					minDepthDifference = depthDifferences[x][y];
 				}	
 			}
 		}
 	}
 
-	double binSize = 0.001;
-	int histogramSize = (int)ceil(maxDepthDifference / binSize);
+	//double binSize = 0.001;
+	double binSize = 0.1;
+	//int histogramSize = (int)ceil(maxDepthDifference / binSize);
+	int histogramSize = (int)ceil((maxDepthDifference - minDepthDifference) / binSize);
 	int histogram[histogramSize];
 
 	for (int histogramIndex = 0; histogramIndex < histogramSize; histogramIndex++) {
@@ -845,7 +851,8 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *reference
 	for (int x = 0; x < numPatternColumns; x++) {
 		for (int y = 0; y < cameraHeight; y++) {
 			if (referenceDepthExperiment->isDepthDataValued(x, y) && depthExperiment->isDepthDataValued(x, y)) {
-				double depthDifference = depthDifferences[x][y] / binSize;
+				//double depthDifference = depthDifferences[x][y] / binSize;
+				double depthDifference = (depthDifferences[x][y] - minDepthDifference) / binSize;
 
 				histogram[(int)floor(depthDifference)]++;
 			}
@@ -865,7 +872,9 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *reference
 	}
 
 	for (int histogramIndex = 0; histogramIndex < histogramSize; histogramIndex++) {
-		outputFileStream << ((double)histogram[histogramIndex] / (double)totalHistograms) << endl;
+		//outputFileStream << ((double)histogram[histogramIndex] / (double)totalHistograms) << endl;
+		//outputFileStream << (int)floor(histogramIndex + minDepthDifference) << "," << histogram[histogramIndex] << endl;
+		outputFileStream << (int)floor(histogramIndex + minDepthDifference) << "," << ((double)histogram[histogramIndex] / (double)totalHistograms) << endl;
 	}
 
 	outputFileStream.close();
@@ -879,7 +888,7 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *reference
  */ 
 
 //Compare an experiment against the reference experiment
-void slResolutionMetric::compareExperimentAgainstReference(slExperiment *referenceExperiment, slExperiment *experiment) {
+void slResolutionMetric::compareExperimentAgainstReference(slExperiment *experiment, slExperiment *referenceExperiment) {
 	slDepthExperiment *referenceDepthExperiment = dynamic_cast<slDepthExperiment *>(referenceExperiment);
 	slDepthExperiment *depthExperiment = dynamic_cast<slDepthExperiment *>(experiment);
 

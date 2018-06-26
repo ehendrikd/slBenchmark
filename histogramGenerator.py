@@ -1,38 +1,51 @@
 import sys
+from collections import defaultdict
 
-maxNumLines = 0
-files = []
+minLineNum = sys.maxint
+maxLineNum = -sys.maxint - 1
+values = defaultdict(dict)
+fileIndex = 0
 
 for csvFile in sys.argv[1:]:
     fileLines = []
-    numLines = 0
     
     for line in open(csvFile):
-        fileLines.append(line.strip())
-        numLines += 1
+        lineArray = line.strip().split(",")
+        lineNum = int(lineArray[0])
 
-    if numLines > maxNumLines:
-        maxNumLines = numLines
+        values[lineNum][fileIndex] = float(lineArray[1])
 
-    files.append(fileLines)
-    print(maxNumLines)
+        if lineNum > maxLineNum:
+           maxLineNum = lineNum
+        if lineNum < minLineNum:
+           minLineNum = lineNum
+
+
+        #fileLines.append(line.strip())
+
+    #files.append(fileLines)
+
+    fileIndex = fileIndex + 1
+    print(minLineNum)
+    print(maxLineNum)
+
+#print(values)
 
 outFile = open("histogram.dat", "w+")
 
-for lineIndex in range(0, maxNumLines):
-    outLine = "" + str(lineIndex + 1) + "\t"
-    fileIndex = 0
+for lineIndex in range(minLineNum, maxLineNum + 1):
+    outLine = "" + str(lineIndex) + "\t"
 
-    for fileLines in files:
-        if lineIndex < len(fileLines):
-            outLine += fileLines[lineIndex]
-        else:
+    for fileIndex2 in range(0, fileIndex):
+        value = values[lineIndex].get(fileIndex2)
+
+        if value == None:
             outLine += "0"    
+        else:
+            outLine += str(value)
 
-        if fileIndex < (len(files) - 1):
+        if fileIndex2 < (fileIndex - 1):
             outLine += "\t"
-
-        fileIndex += 1
 
     outFile.write(outLine + "\n")
 
