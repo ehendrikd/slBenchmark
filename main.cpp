@@ -34,30 +34,31 @@ int main() {
 	DeBruijnImplementation deBruijnImplementation(implementationColumns);
 //	PSMImplementation psmImplementation;
 	SingleLineImplementation singleLineImplementation(projectorWidth);
-	RaycastImplementation raycastImplementation(projectorWidth);
+//	SingleLineImplementation singleLineImplementation(implementationColumns);
+//	RaycastImplementation raycastImplementation(projectorWidth);
 
 	slSpeedDepthExperiment binaryExperiment(currentInfrastructure, &binaryImplementation);
 	slSpeedDepthExperiment grayCodedBinaryExperiment(currentInfrastructure, &grayCodedBinaryImplementation);
 	slSpeedDepthExperiment deBruijnExperiment(currentInfrastructure, &deBruijnImplementation);
 //	slSpeedDepthExperiment psmExperiment(currentInfrastructure, &psmImplementation);
 	slSpeedDepthExperiment singleLineExperiment(currentInfrastructure, &singleLineImplementation);
-	slSpeedDepthExperiment raycastExperiment(&blenderVirtualInfrastructure, &raycastImplementation);
+//	slSpeedDepthExperiment raycastExperiment(&blenderVirtualInfrastructure, &raycastImplementation);
 
 	binaryExperiment.run();
 	grayCodedBinaryExperiment.run();
 	deBruijnExperiment.run();
 //	psmExperiment.run();
-	raycastExperiment.run();
+//	raycastExperiment.run();
 	singleLineExperiment.run();
 	
-	slBenchmark benchmark(&raycastExperiment);
-//	slBenchmark benchmark(&singleLineExperiment);
+//	slBenchmark benchmark(&raycastExperiment);
+	slBenchmark benchmark(&singleLineExperiment);
 
 	benchmark.addExperiment(&binaryExperiment);
 	benchmark.addExperiment(&grayCodedBinaryExperiment);
 	benchmark.addExperiment(&deBruijnExperiment);
 //	benchmark.addExperiment(&psmExperiment);
-	benchmark.addExperiment(&singleLineExperiment);
+//	benchmark.addExperiment(&singleLineExperiment);
 
 	benchmark.addMetric(new slSpeedMetric());
 	benchmark.addMetric(new slAccuracyMetric());
@@ -69,7 +70,7 @@ int main() {
 	sl3DReconstructor::writeXYZPointCloud(&grayCodedBinaryExperiment);
 	sl3DReconstructor::writeXYZPointCloud(&deBruijnExperiment);
 //	sl3DReconstructor::writeXYZPointCloud(&psmExperiment);
-	sl3DReconstructor::writeXYZPointCloud(&raycastExperiment);
+//	sl3DReconstructor::writeXYZPointCloud(&raycastExperiment);
 	sl3DReconstructor::writeXYZPointCloud(&singleLineExperiment);
 
 	return 0;

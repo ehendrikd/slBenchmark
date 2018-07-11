@@ -8,6 +8,7 @@
 
 //#define SINGLE_LINE_BLACK_THRESHOLD 384
 #define SINGLE_LINE_BLACK_THRESHOLD 200
+#define SINGLE_LINE_PIXEL_THRESHOLD 0.1
 
 using namespace cv;
 
@@ -15,8 +16,6 @@ class SingleLineImplementation : public slImplementation {
 	public:
 		SingleLineImplementation(int);
 		virtual ~SingleLineImplementation() {};
-		void preExperimentRun();
-		void postExperimentRun();
 		bool hasMoreIterations();
 		virtual double getPatternWidth();
 		virtual Mat generatePattern();

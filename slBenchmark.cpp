@@ -787,6 +787,7 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *experimen
 		return;
 	}
 
+
 	int numPatternColumns = projectorResolution.width;
 	//int numPatternColumns = depthExperiment->getImplementation()->getPatternWidth();
 	int cameraHeight = cameraResolution.height;
@@ -812,7 +813,16 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *experimen
 */
 	for (int x = 0; x < numPatternColumns; x++) {
 		for (int y = 0; y < cameraHeight; y++) {
+/*
+			if (referenceDepthExperiment->isDepthDataValued(x, y)) {
+				DB("*** RC VALUED x: " << x << " y: " << y << " ***")
+			}
+			if (depthExperiment->isDepthDataValued(x, y)) {
+				DB("*** SL VALUED x: " << x << " y: " << y << " ***")
+			}
+*/
 			if (referenceDepthExperiment->isDepthDataValued(x, y) && depthExperiment->isDepthDataValued(x, y)) {
+//				DB("*** BOTH VALUED ***")
 				depthDifferences[x][y] = referenceDepthExperiment->getDepthData(x, y) - depthExperiment->getDepthData(x, y);
 /*
 				if (depthDifferences[x][y] < 0) {
@@ -830,15 +840,16 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *experimen
 	}
 
 	//double binSize = 0.001;
-	double binSize = 0.1;
+	double binSize = 0.2;
 	//int histogramSize = (int)ceil(maxDepthDifference / binSize);
 	int histogramSize = (int)ceil((maxDepthDifference - minDepthDifference) / binSize);
+	//DB("maxDepthDifference: " << maxDepthDifference << " minDepthDifference: " << minDepthDifference)
 	int histogram[histogramSize];
 
 	for (int histogramIndex = 0; histogramIndex < histogramSize; histogramIndex++) {
 		histogram[histogramIndex] = 0;
 	}
-	DB("histogramSize: " << histogramSize)
+//	DB("histogramSize: " << histogramSize)
 /*
 	for (int depthDataIndex = 0; depthDataIndex < depthExperiment->getNumDepthDataValues(); depthDataIndex++) {
 		if (referenceDepthExperiment->isDepthDataValued(depthDataIndex) && depthExperiment->isDepthDataValued(depthDataIndex)) {
