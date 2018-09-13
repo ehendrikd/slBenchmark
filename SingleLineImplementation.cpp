@@ -28,7 +28,7 @@ Mat SingleLineImplementation::generatePattern() {
 
 	return pattern;
 }
-
+/*
 void SingleLineImplementation::processCapture(Mat captureMat) {
 	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
 	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
@@ -50,32 +50,31 @@ void SingleLineImplementation::processCapture(Mat captureMat) {
 				columnMax = colourTotal;
 				xColumn = column;
 			}
-/*	
-			if (colourTotal >= SINGLE_LINE_BLACK_THRESHOLD && colourTotal > columnMax) {
-				columnMax = colourTotal;
+	
+//			if (colourTotal >= SINGLE_LINE_BLACK_THRESHOLD && colourTotal > columnMax) {
+//				columnMax = colourTotal;
 
-				double prevColourTotal = 0.0;
-				double nextColourTotal = 0.0;
+//				double prevColourTotal = 0.0;
+//				double nextColourTotal = 0.0;
 
-				if (column > 0) {
-					Vec3b prevPixelBGR = captureMat.at<Vec3b>(y, column - 1);
-					prevColourTotal = (double)(prevPixelBGR[0] + prevPixelBGR[1] + prevPixelBGR[2]);
-				}
+//				if (column > 0) {
+//					Vec3b prevPixelBGR = captureMat.at<Vec3b>(y, column - 1);
+//					prevColourTotal = (double)(prevPixelBGR[0] + prevPixelBGR[1] + prevPixelBGR[2]);
+//				}
 
-				if (column < (cameraResolution.width - 1)) {
-					Vec3b nextPixelBGR = captureMat.at<Vec3b>(y, column + 1);
-					nextColourTotal = (double)(nextPixelBGR[0] + nextPixelBGR[1] + nextPixelBGR[2]);
-				}
+//				if (column < (cameraResolution.width - 1)) {
+//					Vec3b nextPixelBGR = captureMat.at<Vec3b>(y, column + 1);
+//					nextColourTotal = (double)(nextPixelBGR[0] + nextPixelBGR[1] + nextPixelBGR[2]);
+//				}
 
-				xCamera = (double)column;
+//				xCamera = (double)column;
 
-				if (y == 360) {
-					DB("xPattern: " << xPattern << " column: " << column << " p: " << prevColourTotal << " c: " << colourTotal << " n: " << nextColourTotal)
-				}	
+//				if (y == 360) {
+//					DB("xPattern: " << xPattern << " column: " << column << " p: " << prevColourTotal << " c: " << colourTotal << " n: " << nextColourTotal)
+//				}	
 
-				break;
-			}
-*/
+//				break;
+//			}
 
 		}
 
@@ -101,21 +100,19 @@ void SingleLineImplementation::processCapture(Mat captureMat) {
 			if (prevColourTotal != 0 && nextColourTotal != 0) {
 				int sidesTotal = prevColourTotal + nextColourTotal;
 				xCamera -= 0.5 + ((double)nextColourTotal / (double)sidesTotal);
-/*
-				double offset = (double)nextColourTotal / (double)sidesTotal;
 
-				if (fabs(0.5 - offset) <= SINGLE_LINE_PIXEL_THRESHOLD) {
-					xCamera = (double)xColumn;						
-				}
-*/
+//				double offset = (double)nextColourTotal / (double)sidesTotal;
+
+//				if (fabs(0.5 - offset) <= SINGLE_LINE_PIXEL_THRESHOLD) {
+//					xCamera = (double)xColumn;						
+//				}
+
 			}
 			
-/*
-			if (y == 360) {
+//			if (y == 360) {
 				//DB("xPattern: " << xPattern << " xCamera: " << xCamera << " p: " << prevColourTotal << " c: " << columnMax << " n: " << nextColourTotal)
-				DB("xPattern," << xPattern << "," << xCamera)
-			}
-*/
+//				DB("xPattern," << xPattern << "," << xCamera)
+//			}
 	
 		}
 
@@ -131,6 +128,73 @@ void SingleLineImplementation::processCapture(Mat captureMat) {
 		}
 	}
 }
+*/
+void SingleLineImplementation::processCapture(Mat captureMat) {
+	Size cameraResolution = experiment->getInfrastructure()->getCameraResolution();
+	Size projectorResolution = experiment->getInfrastructure()->getProjectorResolution();
+
+	int xPattern = experiment->getIterationIndex();
+
+	for (int y = 0; y < cameraResolution.height; y++) {
+		int columnMax = 0;
+//		int foundColumn = -1;
+		int xColumn = -1;	
+		double xCamera = -1.0;
+
+		for (int column = 0; column < cameraResolution.width; column++) {
+			Vec3b pixelBGR = captureMat.at<Vec3b>(y, column);
+
+			int colourTotal = pixelBGR[0] + pixelBGR[1] + pixelBGR[2];
+
+			if (colourTotal > columnMax) {
+				columnMax = colourTotal;
+				xColumn = column;
+			}
+
+		}
+
+
+		if (columnMax >= SINGLE_LINE_BLACK_THRESHOLD) {
+			double lineTotal = 0;
+        	        double aTotal = 0;
+
+			if (xColumn > 1 && xColumn < cameraResolution.width - 3) {
+				for (int column = xColumn - 2; column <= xColumn + 2; column++) {
+					Vec3b pixelBGR = captureMat.at<Vec3b>(y, column);
+
+					double colourTotal = (double)(pixelBGR[0] + pixelBGR[1] + pixelBGR[2]);
+
+					lineTotal += colourTotal;
+					aTotal += ((double)column * colourTotal);
+				}
+
+				//xCamera = (aTotal / lineTotal) + 0.5;
+				xCamera = aTotal / lineTotal;
+			}
+
+			if (!isnan(xCamera) && xCamera != -1) {				
+				double displacement = experiment->getDisplacement(xPattern, xCamera);
+				int xProjector = (int)(experiment->getImplementation()->getPatternXOffsetFactor(xPattern) * projectorResolution.width);
+
+				if (!isinf(displacement)) {
+					slDepthExperimentResult result(xProjector, y, displacement);
+					experiment->storeResult(&result);
+				}
+			}
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
 /*
 double SingleLineImplementation::solveCorrespondence(int xProjector, int y) {
 	Mat lineMat = experiment->getCaptureAt(xProjector);
@@ -166,10 +230,6 @@ double SingleLineImplementation::solveCorrespondence(int xProjector, int y) {
 		Vec3b pixelBGR = lineMat.at<Vec3b>(y, column);
 
 		double colourTotal = (double)(pixelBGR[0] + pixelBGR[1] + pixelBGR[2]);
-
-		if (colourTotal < SINGLE_LINE_BLACK_THRESHOLD) {
-			colourTotal = 0;
-		}
 
 		lineTotal += colourTotal;
 		aTotal += ((double)column * colourTotal);

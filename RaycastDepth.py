@@ -26,8 +26,8 @@ def getDirections(obj, source, sourceWidth, sourceHeight, outputPath):
 	x, y, z = getProjectorDirection()
 	#zPixel = sourceWidth/(2*y)  # This the depth of the picture.
 
-	for yDirection in np.linspace(-y, y, sourceWidth):
-		for zDirection in np.linspace(z, -z, sourceHeight):
+	for yDirection in np.linspace(-y, y, sourceWidth, endpoint=False):
+		for zDirection in np.linspace(z, -z, sourceHeight, endpoint=False):
 			dst = Vector((x, yDirection, zDirection)) + source.location
 
 			mw = obj.matrix_world

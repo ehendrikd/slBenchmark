@@ -839,8 +839,8 @@ void slAccuracyMetric::compareExperimentAgainstReference(slExperiment *experimen
 		}
 	}
 
-	//double binSize = 0.001;
-	double binSize = 0.2;
+	double binSize = 0.001;
+	//double binSize = 0.2;
 	//int histogramSize = (int)ceil(maxDepthDifference / binSize);
 	int histogramSize = (int)ceil((maxDepthDifference - minDepthDifference) / binSize);
 	//DB("maxDepthDifference: " << maxDepthDifference << " minDepthDifference: " << minDepthDifference)
