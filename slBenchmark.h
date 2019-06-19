@@ -236,7 +236,7 @@ class slInfrastructure {
 		virtual ~slInfrastructure() {};
 
 		//Initialise the infrastucture
-		void init();
+		virtual void init();
 
 		//Project the structured light implementation pattern and capture it
 		virtual Mat projectAndCapture(Mat) = 0;
@@ -308,11 +308,18 @@ class slBlenderVirtualInfrastructure : public slInfrastructure {
 					newInfrastructureSetup.cameraProjectorSeparation
 				)
 			),
-			saveBlenderFile(false)
+			saveBlenderFile(false),
+			virtualSceneJSONFilename(string("slVirtualScene.json"))
 		{};
 
 		//Check if saving blender file
 		bool saveBlenderFile;
+
+		//The JSON filename that describes the objects in the virtual scene
+		string virtualSceneJSONFilename;
+
+		//Initialise the infrastucture
+		void init();
 
 		//Project the structured light implementation pattern and capture it
 		Mat projectAndCapture(Mat);

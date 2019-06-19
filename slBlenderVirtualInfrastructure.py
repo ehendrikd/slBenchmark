@@ -33,8 +33,9 @@ if __name__ == "__main__":
 	projectorHorizontalFOV = float(argv[6])
 	halfCameraProjectorSeparation = float(argv[7]) / 2.0
 	saveBlenderFile = (argv[8] == "true")
+	virtualSceneJSONPath = os.path.abspath(argv[9])
 
-	jsonData = json.loads(open(os.path.abspath("./slVirtualScene.json")).read())
+	jsonData = json.loads(open(virtualSceneJSONPath).read())
 
 	bpy.ops.scene.new(type='EMPTY')
         	

@@ -265,6 +265,16 @@ unsigned int slInfrastructure::getUniqueID() {
  * slBlenderVirtualInfrastructure
  */ 
 
+//Initialise the infrastructure
+void slBlenderVirtualInfrastructure::init() {
+	string tempVirtualSceneJSONFilename = virtualSceneJSONFilename;
+	virtualSceneJSONFilename = string("slVirtualScene.json.CALIBRATE");
+	
+	slInfrastructure::init();
+
+	virtualSceneJSONFilename = tempVirtualSceneJSONFilename;
+}
+
 //Project the structured light implementation pattern and capture it
 Mat slBlenderVirtualInfrastructure::projectAndCapture(Mat patternMat) {
 	DB("-> slBlenderVirtualInfrastructure::projectAndCapture()")
@@ -287,7 +297,8 @@ Mat slBlenderVirtualInfrastructure::projectAndCapture(Mat patternMat) {
 			<< getCameraHorizontalFOV() << " "
 			<< getProjectorHorizontalFOV() << " "
 			<< getCameraProjectorSeparation() << " "
-			<< (saveBlenderFile ? "true" : "false");
+			<< (saveBlenderFile ? "true" : "false") << " "
+			<< virtualSceneJSONFilename;
 			
 	DB("blenderCommandLine: " << blenderCommandLine.str())
 
