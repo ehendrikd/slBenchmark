@@ -92,6 +92,100 @@ void slImplementation::postIterationsProcess() {
  * slInfrastructure
  */ 
 
+//Initialise the infrastructure
+void slInfrastructure::init() {
+	//Read calbration matricies
+	stringstream filename;
+	filename << getUniqueID() << ".xml";
+
+	ifstream file(filename.str().c_str());
+	if (file.good()) {
+		FileStorage fileStorage(filename.str().c_str(), FileStorage::READ);
+	
+		fileStorage[INTRINSIC_NAME] >> intrinsicMat;
+		fileStorage[DISTORTION_NAME] >> distortionMat;
+
+		fileStorage.release();
+	} else {
+		cout << "Calibration for infrastruture " << getName() << " and setup not found, calibrate now? (please ensure projected checkerboard pattern can be captured by camera) [y,n]" << endl;
+		char input;
+		cin >> input;
+
+		if (input == 'y' || input == 'Y') {			
+			Mat chessboardMat;
+
+			int border = 20;
+			Size projectorResolution = getProjectorResolution();
+
+			int squareHeight = (int)floor((projectorResolution.height - (border * 2)) / 7);
+			int squareWidth = (int)floor((projectorResolution.width - (border * 2)) / 10);
+
+			int squareSize = squareHeight < squareWidth ? squareHeight : squareWidth;
+
+			chessboardMat.create((int)projectorResolution.height, (int)projectorResolution.width, CV_8UC3);
+			chessboardMat.setTo(Scalar(255, 255, 255));
+
+			for (int x = 0; x < 10; x++) {
+				for (int y = 0; y < 7; y++) {					
+					if ((x % 2 == 0 && y % 2 != 0) || (x % 2 != 0 && y % 2 == 0)) {
+						rectangle(chessboardMat, Point((x * squareSize) + border, (y * squareSize) + border), Point(((x + 1) * squareSize) + border, ((y + 1) * squareSize) + border), Scalar(0, 0, 0), FILLED);
+					}
+				}
+			}
+
+			Mat capturedChessboardMat = projectAndCapture(chessboardMat);
+			Mat grayCapturedChessboardMat;
+			cvtColor(capturedChessboardMat, grayCapturedChessboardMat, CV_BGR2GRAY);
+
+//			imwrite("chessboard.png", grayCapturedChessboardMat);
+
+			int numCornersHor = 9;
+			int numCornersVer = 6;
+
+		    	int numSquares = numCornersHor * numCornersVer;
+			Size boardSize = Size(numCornersHor, numCornersVer);
+
+			vector<vector<Point3f> > objectPoints;
+			vector<vector<Point2f> > imagePoints;
+
+			vector<Point2f> corners;
+
+			vector<Point3f> obj;
+			for (int j = 0; j < numSquares; j++) {
+				obj.push_back(Point3f(j / numCornersHor, j % numCornersHor, 0.0f));
+			}
+
+
+			if (findChessboardCorners(
+				grayCapturedChessboardMat, boardSize, corners, CV_CALIB_CB_ADAPTIVE_THRESH)
+			) {
+				cornerSubPix(grayCapturedChessboardMat, corners, Size(11, 11), Size(-1, -1), TermCriteria(CV_TERMCRIT_EPS | CV_TERMCRIT_ITER, 30, 0.1));
+			} else {
+				FATAL("Could not find chessboard corners during calibration. Please ensure the camera can capture the projector output.")
+			}
+
+			imagePoints.push_back(corners);
+			objectPoints.push_back(obj);
+
+			intrinsicMat = Mat(3, 3, CV_32FC1);
+			vector<Mat> rvecs;
+			vector<Mat> tvecs;
+
+			intrinsicMat.ptr<float>(0)[0] = 1;
+			intrinsicMat.ptr<float>(1)[1] = 1;
+
+			calibrateCamera(objectPoints, imagePoints, capturedChessboardMat.size(), intrinsicMat, distortionMat, rvecs, tvecs);
+
+			FileStorage fs(filename.str().c_str(), FileStorage::WRITE);
+			fs << INTRINSIC_NAME << intrinsicMat;
+			fs << DISTORTION_NAME << distortionMat;
+			fs.release();
+
+		} else {
+			FATAL("Cannot continue without calibration completed.")
+		}
+	}
+}
 
 //The name of this infrastructure
 string slInfrastructure::getName() {
@@ -131,6 +225,40 @@ double slInfrastructure::getProjectorVerticalFOV() {
 //Get the distance between the camera and the projector
 double slInfrastructure::getCameraProjectorSeparation() {
 	return infrastructureSetup.cameraProjectorSeparation;
+}
+
+//Generate a unique identifier for this infrastructure and setup (for saving/reading calibration)
+unsigned int slInfrastructure::getUniqueID() {
+	unsigned int hash = 0;
+	unsigned int x    = 0;
+	unsigned int i    = 0;
+
+	stringstream id;
+
+	id << 
+		getName() << "-" <<
+		getCameraResolution() << "-" <<
+		getCameraHorizontalFOV() << "-" <<
+		getCameraVerticalFOV() << "-" <<
+		getProjectorResolution() << "-" <<
+		getProjectorHorizontalFOV() << "-" <<
+		getProjectorVerticalFOV() << "-" <<
+		getCameraProjectorSeparation();
+
+	string idStr = id.str();
+	const char *str = idStr.c_str();
+
+	for (i = 0; i < idStr.length(); ++str, ++i) {
+		hash = (hash << 4) + (*str);
+
+		if ((x = hash & 0xF0000000L) != 0) {
+			hash ^= (x >> 24);
+		}
+
+		hash &= ~x;
+	}
+
+	return hash;
 }
 
 /*
@@ -311,6 +439,9 @@ void slExperiment::run() {
 	infrastructure->experiment = this;
 	implementation->experiment = this;
 
+	//Initialise the infrastructure
+	infrastructure->init();
+
 	//Inform the implementation the experiment is about to run
 	implementation->preExperimentRun();
 
@@ -338,12 +469,11 @@ void slExperiment::run() {
 
 		patternFileStream.str("");
 		captureFileStream.str("");
+
+
 			
 		//Generate the implementation's pattern
 		DB("About to implementation->generatePattern()...")
-
-
-
 
 		//Run before a pattern is generated
 		runPrePatternGeneration();
@@ -353,10 +483,9 @@ void slExperiment::run() {
 		//Run after a pattern is generated
 		runPostPatternGeneration();
 
-
-
-
 		DB("implementation->generatePattern() complete.")
+
+
 
 		//Create current pattern file path
 		patternFileStream << patternsPathStream.str() << OS_SEP << "pattern_" << iterationIndex << ".png";
@@ -364,11 +493,10 @@ void slExperiment::run() {
 		//Save the pattern to the implementation's patterns
 		imwrite(patternFileStream.str(), patternMat);
 
+
+
 		//Capture the implementation's pattern using the current infrastructure
 		DB("About to infrastructure->projectAndCapture()...")
-
-
-
 
 		//Run before pattern is projected and captured
 		runPreProjectAndCapture();
@@ -378,35 +506,37 @@ void slExperiment::run() {
 		//Run after pattern is projected and captured
 		runPostProjectAndCapture();
 
-
-
+		//Undistort the capture
+		Mat undistortedCaptureMat;
+		undistort(captureMat, undistortedCaptureMat, infrastructure->intrinsicMat, infrastructure->distortionMat);
 
 		DB("infrastructure->projectAndCapture() complete.")
+
+
 
 		//Create current capture file path
 		captureFileStream << capturesPathStream.str() << OS_SEP << "capture_" << iterationIndex << ".png";
 
 		//Save the capture to the implementation's captures
-		imwrite(captureFileStream.str(), captureMat);
+		imwrite(captureFileStream.str(), undistortedCaptureMat);
+
+
 
 		//Allow the implementation to process the capture
 		DB("About to implementation->processCapture()...")
 
-
-
-
 		//Run before the implementation processes this capture
 		runPreProcessCapture();
 
-		implementation->processCapture(captureMat);
+		implementation->processCapture(undistortedCaptureMat);
+		//implementation->processCapture(captureMat);
 
 		//Run after the implementation processes this capture
 		runPostProcessCapture();
 
-
-
-
 		DB("implementation->processCapture() complete.")
+
+
 
 		DB("Iteration #" << iterationIndex << " complete.")
 
@@ -424,12 +554,9 @@ void slExperiment::run() {
 	runPostIterations();
 
 
-
 		
 	//Allow the implementation to post process after the iterations
 	DB("About to implementation->postIterationsProcess()...")
-
-
 
 	//Run before the implementation processes after all the iterations
 	runPreImplementationPostIterationsProcess();
@@ -439,10 +566,9 @@ void slExperiment::run() {
 	//Run after the implementation processes after all the iterations
 	runPostImplementationPostIterationsProcess();
 
-
-
-
 	DB("implementation->postIterationsProcess() complete.")
+
+
 
 	//Inform the implementation the experiment has completed running
 	implementation->postExperimentRun();

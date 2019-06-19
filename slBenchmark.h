@@ -34,6 +34,10 @@
 #include <sys/stat.h>
 #include <opencv2/opencv.hpp>
 
+//Physical camera/projector calibration filename/XML names
+#define INTRINSIC_NAME				"intrinsic"
+#define DISTORTION_NAME				"distortion"
+
 //Default camera resolution
 #define DEFAULT_CAMERA_PROJECTOR_WIDTH		1920
 #define DEFAULT_CAMERA_PROJECTOR_HEIGHT		1080
@@ -222,14 +226,17 @@ class slInfrastructure {
 		slInfrastructure(
 			string newName,
 			slInfrastructureSetup newInfrastructureSetup = slInfrastructureSetup()
-		):
-			name(newName),
-			infrastructureSetup(newInfrastructureSetup),
+		): 
+			name(newName), 
+			infrastructureSetup(newInfrastructureSetup), 
 			experiment(NULL)
 		{};
 
 		//Clean up
 		virtual ~slInfrastructure() {};
+
+		//Initialise the infrastucture
+		void init();
 
 		//Project the structured light implementation pattern and capture it
 		virtual Mat projectAndCapture(Mat) = 0;
@@ -260,12 +267,21 @@ class slInfrastructure {
 
 		//A reference to the current experiment
 		slExperiment *experiment;
+		
+		//The intrinsic calibration matrix
+		Mat intrinsicMat;
+
+		//The distortion calibration matrix
+		Mat distortionMat;
 
 	protected:
 		//The infrastructure setup
 		slInfrastructureSetup infrastructureSetup;
 
 	private:
+		//Generate a unique identifier for this infrastructure and setup (for saving/reading calibration)
+		unsigned int getUniqueID();
+
 		//The name of this infrastructure
 		string name;
 };
