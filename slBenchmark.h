@@ -225,10 +225,12 @@ class slInfrastructure {
 		//Create an infrastructure instance with a benchmark and a name
 		slInfrastructure(
 			string newName,
-			slInfrastructureSetup newInfrastructureSetup = slInfrastructureSetup()
+			slInfrastructureSetup newInfrastructureSetup = slInfrastructureSetup(),
+			bool newCalibrationRequired = true
 		): 
 			name(newName), 
 			infrastructureSetup(newInfrastructureSetup), 
+			calibrationRequired(newCalibrationRequired),
 			experiment(NULL)
 		{};
 
@@ -264,6 +266,9 @@ class slInfrastructure {
 
 		//Get the distance between the camera and the projector
 		double getCameraProjectorSeparation();
+	
+		//Does this infrastructure require calibration
+		bool isCalibrationRequired() {return calibrationRequired;};
 
 		//A reference to the current experiment
 		slExperiment *experiment;
@@ -277,6 +282,9 @@ class slInfrastructure {
 	protected:
 		//The infrastructure setup
 		slInfrastructureSetup infrastructureSetup;
+
+		//Does this infrastructure require calibration
+		bool calibrationRequired;
 
 	private:
 		//Generate a unique identifier for this infrastructure and setup (for saving/reading calibration)
@@ -350,7 +358,7 @@ class slFileInfrastructure : public slInfrastructure {
 	public:
 		//Create a file infrastruture instance
 		slFileInfrastructure(slInfrastructureSetup newInfrastructureSetup): 
-			slInfrastructure(string("slFileInfrastructure"), newInfrastructureSetup)
+			slInfrastructure(string("slFileInfrastructure"), newInfrastructureSetup, false)
        		{};
 
 		//Project the structured light implementation pattern and capture it

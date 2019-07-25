@@ -3,7 +3,7 @@
 	[
 		{
 			"type":		"sphere",
-			"location":	[-75, 10, 0],
+			"location":	[-70, 10, 0],
 			"rotation":	[0, 0, 0],
 			"scale":	[6, 6, 6]
 		}

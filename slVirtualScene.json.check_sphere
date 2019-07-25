@@ -1,0 +1,17 @@
+{
+	"objects": 
+	[
+		{
+			"type":		"plane",
+			"location":	[-71, 15, -3.5],
+			"rotation":	[0, 90, 0],
+			"scale":	[100, 100, 1]
+		},
+		{
+			"type":		"sphere",
+			"location":	[-65, 15, -3.5],
+			"rotation":	[0, 0, 0],
+			"scale":	[6, 6, 6]
+		}
+	]
+}

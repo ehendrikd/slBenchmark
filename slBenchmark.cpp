@@ -94,6 +94,10 @@ void slImplementation::postIterationsProcess() {
 
 //Initialise the infrastructure
 void slInfrastructure::init() {
+	if (!isCalibrationRequired()) {
+		return;
+	}
+
 	//Read calbration matricies
 	stringstream filename;
 	filename << getUniqueID() << ".xml";
@@ -258,6 +262,7 @@ unsigned int slInfrastructure::getUniqueID() {
 		hash &= ~x;
 	}
 
+	DB("hash: " << hash)
 	return hash;
 }
 
@@ -519,7 +524,12 @@ void slExperiment::run() {
 
 		//Undistort the capture
 		Mat undistortedCaptureMat;
-		undistort(captureMat, undistortedCaptureMat, infrastructure->intrinsicMat, infrastructure->distortionMat);
+
+		if (infrastructure->isCalibrationRequired()) {
+			undistort(captureMat, undistortedCaptureMat, infrastructure->intrinsicMat, infrastructure->distortionMat);
+		} else {
+			undistortedCaptureMat = captureMat;
+		}
 
 		DB("infrastructure->projectAndCapture() complete.")
 
@@ -1116,17 +1126,11 @@ void sl3DReconstructor::writeXYZPointCloud(slDepthExperiment *depthExperiment) {
 
 	for (int x = 0; x < numPatternColumns; x++) {
 		for (int y = 0; y < cameraHeight; y++) {
-			//int arrayOffset = (y * numPatternColumns) + x;
-
-			//if (depthExperiment->isDepthDataValued(arrayOffset)) {
 			if (depthExperiment->isDepthDataValued(x, y)) {
-				//double zCoord = depthExperiment->getDepthData(arrayOffset);
 				double zCoord = depthExperiment->getDepthData(x, y);
 				double xCoord = ((double)x - halfNumPatternColumns) * zCoord * (2.0 * halfProjectorHorizontalFOVRadians / numPatternColumns);
 				double yCoord = ((double)y - halfCameraHeight) * zCoord * (2.0 * halfCameraVerticalFOVRadians / cameraHeight);
-//				if (zCoord > -70 && zCoord < -20) {
-					outputFileStream << xCoord << " " << yCoord << " " << zCoord << endl;
-//				}
+				outputFileStream << xCoord << " " << yCoord << " " << zCoord << endl;
 
 				//outputFileStream << "[x: " << x << " y: " << y << "] " << xCoord << " " << yCoord << " " << zCoord << endl;
 			}
